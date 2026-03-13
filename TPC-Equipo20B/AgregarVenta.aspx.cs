@@ -49,6 +49,8 @@ namespace TPC_Equipo20B
                 divTipoVenta.Visible = false;
                 divFilaMetodos.Visible = false;
 
+                divDescuentoAdmin.Visible = false; // <-- EL VENDEDOR NO VE EL DESCUENTO
+
                 txtFecha.Attributes.Add("readonly", "readonly");
                 txtFecha.Style.Add("pointer-events", "none");
                 txtFecha.CssClass = "form-control form-control-sm bg-transparent text-center border-0 fw-bold p-0 text-dark fs-6";
@@ -69,6 +71,8 @@ namespace TPC_Equipo20B
                 divMetodoPago.Visible = true;
                 divTipoVenta.Visible = true;
 
+                divDescuentoAdmin.Visible = true; // <-- EL ADMIN SÍ VE EL DESCUENTO
+
                 txtFecha.Attributes.Remove("readonly");
                 txtFecha.Style.Remove("pointer-events");
                 txtFecha.CssClass = "form-control form-control-sm bg-white text-center border-0 border-bottom border-success fw-bold px-2 py-1 text-dark fs-6";
@@ -80,6 +84,12 @@ namespace TPC_Equipo20B
                 btnProcesarUI.InnerHtml = "<span class=\"material-symbols-outlined fs-5\">check_circle</span> Confirmar Venta";
                 lblMensajeExitoModal.Text = "El remito ha sido registrado en el sistema correctamente.";
             }
+        }
+
+        protected void txtDescuento_TextChanged(object sender, EventArgs e)
+        {
+            // Evento que se dispara cuando el admin tipea un descuento y sale del campo
+            ActualizarTotal();
         }
 
         protected void ddlProducto_SelectedIndexChanged(object sender, EventArgs e)
@@ -244,7 +254,22 @@ namespace TPC_Equipo20B
 
         private void ActualizarTotal()
         {
-            decimal total = Lineas.Sum(l => l.PrecioUnitario * l.Cantidad);
+            decimal subtotal = Lineas.Sum(l => l.PrecioUnitario * l.Cantidad);
+            decimal porcentajeDescuento = 0;
+
+            if (divDescuentoAdmin.Visible && !string.IsNullOrEmpty(txtDescuento.Text))
+            {
+                decimal.TryParse(txtDescuento.Text, out porcentajeDescuento);
+                // Evitamos que ponga más del 100% de descuento
+                if (porcentajeDescuento > 100) porcentajeDescuento = 100;
+            }
+
+            // Calculamos cuánta plata hay que descontar
+            decimal descuentoAplicado = subtotal * (porcentajeDescuento / 100m);
+
+            decimal total = subtotal - descuentoAplicado;
+            if (total < 0) total = 0;
+
             lblTotal.Text = total.ToString("C");
         }
 
@@ -284,13 +309,21 @@ namespace TPC_Equipo20B
                 string metodoPagoFinal = esAdmin ? ddlMetodoPago.SelectedValue : "Transferencia";
                 DateTime fechaVenta = DateTime.TryParse(txtFecha.Text, out DateTime parsedDate) ? parsedDate : DateTime.Now;
 
+                // Capturamos el descuento final para guardarlo en la Base de Datos
+                decimal descuentoFinal = 0;
+                if (esAdmin && !string.IsNullOrEmpty(txtDescuento.Text))
+                {
+                    decimal.TryParse(txtDescuento.Text, out descuentoFinal);
+                }
+
                 Venta venta = new Venta
                 {
                     Cliente = clienteCompleto,
                     Usuario = usuarioCompleto,
                     Fecha = fechaVenta,
                     MetodoPago = metodoPagoFinal,
-                    TipoVenta = esAdmin ? rblTipoVenta.SelectedValue : "Mayorista", // GUARDAMOS LA COLUMNA NUEVA
+                    TipoVenta = esAdmin ? rblTipoVenta.SelectedValue : "Mayorista",
+                    Descuento = descuentoFinal, // <-- AQUÍ SE GUARDA EL DESCUENTO
                     Lineas = Lineas
                 };
 
@@ -346,10 +379,15 @@ namespace TPC_Equipo20B
                 lblTituloPagina.InnerText = "Editar Venta / Pedido";
                 lblSubtituloPagina.InnerText = $"Modificando el remito {venta.NumeroFactura}";
 
-                // Muestra qué botón estaba seleccionado originalmente al editar
                 if (!string.IsNullOrEmpty(venta.TipoVenta))
                 {
                     rblTipoVenta.SelectedValue = venta.TipoVenta;
+                }
+
+                // Cargar el descuento previo si existía
+                if (venta.Descuento > 0)
+                {
+                    txtDescuento.Text = Math.Round(venta.Descuento, 0).ToString();
                 }
 
                 btnProcesarUI.InnerHtml = "<span class=\"material-symbols-outlined fs-5\">save_as</span> Guardar Cambios";

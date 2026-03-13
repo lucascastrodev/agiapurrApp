@@ -62,7 +62,7 @@ namespace TPC_Equipo20B
             else
             {
                 panelCancelada.Visible = false;
-                btnImprimir.Text = "Imprimir Remito / PDF";
+                btnImprimir.Text = "Imprimir Orden / PDF";
             }
 
             // Formatear textos con Title Case
@@ -71,10 +71,12 @@ namespace TPC_Equipo20B
             lblFecha.Text = venta.Fecha.ToString("dd/MM/yyyy");
             lblMetodoPago.Text = venta.MetodoPago ?? "-";
             lblFactura.Text = venta.NumeroFactura ?? "-";
-            lblTotal.Text = venta.TotalBD.ToString("C");
+
+            // --- DETERMINAR SI ES MAYORISTA O CONSUMIDOR FINAL ---
+            bool esConsumidorFinal = (venta.Cliente == null);
 
             // --- DATOS COMPLETOS DEL CLIENTE ---
-            if (venta.Cliente != null)
+            if (!esConsumidorFinal)
             {
                 lblCliente.Text = textInfo.ToTitleCase(venta.Cliente.Nombre.ToLower());
 
@@ -102,7 +104,7 @@ namespace TPC_Equipo20B
                 iconoEdicion.Visible = true;
             }
 
-            // --- ORDENAR LOS PRODUCTOS POR CÓDIGO/ID DE MENOR A MAYOR Y APLICAR TITLE CASE ---
+            // --- ORDENAR Y RECORTAR PRODUCTOS ---
             if (venta.Lineas != null && venta.Lineas.Count > 0)
             {
                 foreach (var linea in venta.Lineas)
@@ -113,15 +115,76 @@ namespace TPC_Equipo20B
                     }
                 }
 
-                var lineasOrdenadas = venta.Lineas.OrderBy(l => l.Producto.Id).ToList();
+                // ORDENAMIENTO INFALIBLE (Frutos secos primero)
+                var lineasOrdenadas = venta.Lineas.OrderBy(l =>
+                {
+                    if (l.Producto.Categoria != null && l.Producto.Categoria.Nombre.IndexOf("Fruto", StringComparison.OrdinalIgnoreCase) >= 0)
+                        return 0;
+
+                    string desc = l.Producto.Descripcion.ToLower();
+                    if (desc.Contains("mani") || desc.Contains("almendra") || desc.Contains("nuez") ||
+                        desc.Contains("pistacho") || desc.Contains("castaña") || desc.Contains("mix") ||
+                        desc.Contains("pasas") || desc.Contains("coco"))
+                        return 0;
+
+                    return 1;
+                })
+                .ThenBy(l => l.Producto.Descripcion)
+                .ToList();
+
+                // LÍMITES DINÁMICOS Y ASIGNACIÓN DE CLASES CSS
+                if (esConsumidorFinal)
+                {
+                    // Consumidor Final: Máximo 25 ítems y clase de letra grande
+                    if (lineasOrdenadas.Count > 25) lineasOrdenadas = lineasOrdenadas.Take(25).ToList();
+                    printContainer.Attributes["class"] = "py-3 print-mode-cf";
+                }
+                else
+                {
+                    // Mayorista: Máximo 40 ítems y clase de letra chica
+                    if (lineasOrdenadas.Count > 40) lineasOrdenadas = lineasOrdenadas.Take(40).ToList();
+                    printContainer.Attributes["class"] = "py-3 print-mode-mayorista";
+                }
+
                 gvLineas.DataSource = lineasOrdenadas;
                 gvLineas.DataBind();
+
+                // --- CÁLCULO VISUAL DE SUBTOTAL, DESCUENTO Y TOTAL ---
+                decimal subtotalReal = lineasOrdenadas.Sum(l => l.Subtotal);
+                lblSubtotal.Text = subtotalReal.ToString("C");
+
+                if (venta.Descuento > 0)
+                {
+                    divSubtotal.Visible = true;
+                    divDescuento.Visible = true;
+
+                    // Mostramos de cuánto fue el porcentaje (Ej: "Descuento (15%):")
+                    lblTextoDescuento.InnerText = $"Descuento ({venta.Descuento:N0}%):";
+
+                    // Calculamos cuánta plata se descontó
+                    decimal plataDescontada = subtotalReal * (venta.Descuento / 100m);
+                    lblDescuento.Text = "- " + plataDescontada.ToString("C");
+
+                    // Mostramos el Total Final
+                    lblTotal.Text = (subtotalReal - plataDescontada).ToString("C");
+                }
+                else
+                {
+                    // Si no hay descuento, ocultamos el renglón de descuento y subtotal, dejando solo el Total.
+                    divSubtotal.Visible = false;
+                    divDescuento.Visible = false;
+                    lblTotal.Text = subtotalReal.ToString("C");
+                }
+            }
+            else
+            {
+                lblTotal.Text = "$ 0.00";
             }
 
             // Nombre del PDF
             string nombreArchivo = (venta.Estado == "Cancelada")
                 ? (!string.IsNullOrEmpty(venta.NumeroNC) ? venta.NumeroNC : "NotaCredito")
-                : (!string.IsNullOrEmpty(venta.NumeroFactura) ? venta.NumeroFactura : "Remito");
+                : (!string.IsNullOrEmpty(venta.NumeroFactura) ? venta.NumeroFactura : "OrdenPedido");
 
             NombreComprobante = nombreArchivo.Replace("'", "");
         }
@@ -153,7 +216,7 @@ namespace TPC_Equipo20B
 
                 negocio.EnviarMailFactura(venta);
 
-                string tipoComprobante = (venta.Estado == "Cancelada") ? "la nota de crédito" : "el remito";
+                string tipoComprobante = (venta.Estado == "Cancelada") ? "la nota de crédito" : "la orden de pedido";
                 string numeroComprobante = (venta.Estado == "Cancelada")
                     ? (string.IsNullOrEmpty(venta.NumeroNC) ? "" : " " + venta.NumeroNC)
                     : (string.IsNullOrEmpty(venta.NumeroFactura) ? "" : " " + venta.NumeroFactura);

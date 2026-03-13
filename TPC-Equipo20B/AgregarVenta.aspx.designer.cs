@@ -231,6 +231,24 @@ namespace TPC_Equipo20B
         protected global::System.Web.UI.WebControls.GridView gvLineas;
 
         /// <summary>
+        /// Control divDescuentoAdmin.
+        /// </summary>
+        /// <remarks>
+        /// Campo generado automáticamente.
+        /// Para modificarlo, mueva la declaración del campo del archivo del diseñador al archivo de código subyacente.
+        /// </remarks>
+        protected global::System.Web.UI.HtmlControls.HtmlGenericControl divDescuentoAdmin;
+
+        /// <summary>
+        /// Control txtDescuento.
+        /// </summary>
+        /// <remarks>
+        /// Campo generado automáticamente.
+        /// Para modificarlo, mueva la declaración del campo del archivo del diseñador al archivo de código subyacente.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.TextBox txtDescuento;
+
+        /// <summary>
         /// Control lblTxtTotalRemito.
         /// </summary>
         /// <remarks>

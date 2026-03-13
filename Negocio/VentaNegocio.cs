@@ -22,12 +22,13 @@ SELECT
     V.NumeroFactura,
     V.MetodoPago,
     V.Total,
+    V.Descuento, -- LEYENDO LA COLUMNA DESCUENTO
     V.Estado, 
     V.MotivoCancelacion,
     V.FechaCancelacion,
     V.IdUsuarioCancelacion,
     V.IdUsuario,
-    V.TipoVenta, -- LEYENDO LA COLUMNA NUEVA
+    V.TipoVenta,
     U.Nombre AS NombreUsuario,
     C.Id AS IdCliente,  
     C.Nombre AS NombreCliente
@@ -77,6 +78,7 @@ WHERE 1 = 1
                             Nombre = datos.Lector["NombreUsuario"].ToString()
                         },
                         TotalBD = datos.Lector["Total"] != DBNull.Value ? Convert.ToDecimal(datos.Lector["Total"]) : 0,
+                        Descuento = datos.Lector["Descuento"] != DBNull.Value ? Convert.ToDecimal(datos.Lector["Descuento"]) : 0, // MAPEO DEL DESCUENTO
                         Estado = datos.Lector["Estado"].ToString()
                     };
 
@@ -108,8 +110,9 @@ WHERE 1 = 1
                 V.NumeroFactura,
                 V.NumeroNC,
                 V.MetodoPago,
-                V.TipoVenta, -- LEYENDO LA COLUMNA NUEVA
+                V.TipoVenta, 
                 V.Total AS TotalBD,
+                V.Descuento, -- LEYENDO LA COLUMNA DESCUENTO
                 V.Estado, 
                 V.MotivoCancelacion,
                 V.FechaCancelacion,
@@ -144,6 +147,7 @@ WHERE 1 = 1
                         NumeroNC = datos.Lector["NumeroNC"]?.ToString(),
                         MetodoPago = datos.Lector["MetodoPago"]?.ToString(),
                         TotalBD = datos.Lector["TotalBD"] != DBNull.Value ? Convert.ToDecimal(datos.Lector["TotalBD"]) : 0,
+                        Descuento = datos.Lector["Descuento"] != DBNull.Value ? Convert.ToDecimal(datos.Lector["Descuento"]) : 0, // MAPEO DEL DESCUENTO
                         Cliente = new Cliente
                         {
                             Id = (int)datos.Lector["IdCliente"],
@@ -311,24 +315,24 @@ WHERE 1 = 1
 
             try
             {
-                decimal total = 0;
-                foreach (var linea in venta.Lineas)
-                    total += linea.Subtotal;
+                decimal totalFinal = venta.TotalFinal;
 
                 string numeroFactura = GenerarNumeroFactura();
                 venta.NumeroFactura = numeroFactura;
 
                 datos.setearConsulta(@"
-                    INSERT INTO Ventas (IdUsuario, IdCliente, Fecha, NumeroFactura, MetodoPago, TipoVenta, Total, Estado)
+                    INSERT INTO Ventas (IdUsuario, IdCliente, Fecha, NumeroFactura, MetodoPago, TipoVenta, Descuento, Total, Estado)
                     OUTPUT INSERTED.Id
-                    VALUES (@usuario, @cliente, @fecha, @factura, @metodo, @tipoVenta, @total, 'Activa')");
+                    VALUES (@usuario, @cliente, @fecha, @factura, @metodo, @tipoVenta, @descuento, @total, 'Activa')");
+
                 datos.setearParametro("@usuario", venta.Usuario.Id);
                 datos.setearParametro("@cliente", venta.Cliente.Id);
                 datos.setearParametro("@fecha", venta.Fecha);
                 datos.setearParametro("@factura", numeroFactura);
                 datos.setearParametro("@metodo", venta.MetodoPago ?? "");
-                datos.setearParametro("@tipoVenta", venta.TipoVenta ?? "Final"); // GUARDANDO LA COLUMNA NUEVA
-                datos.setearParametro("@total", total);
+                datos.setearParametro("@tipoVenta", venta.TipoVenta ?? "Final");
+                datos.setearParametro("@descuento", venta.Descuento); // GUARDANDO EL DESCUENTO
+                datos.setearParametro("@total", totalFinal); // GUARDANDO EL TOTAL YA RESTADO
 
                 idVenta = Convert.ToInt32(datos.EjecutarScalar());
 
@@ -697,7 +701,6 @@ WHERE 1 = 1
         {
             try
             {
-                // 1. Obtener las líneas originales para devolver el stock a la base de datos
                 AccesoDatos datos = new AccesoDatos();
                 datos.setearConsulta("SELECT IdProducto, Cantidad FROM Detalle_Venta WHERE IdVenta = @idVenta");
                 datos.setearParametro("@idVenta", venta.Id);
@@ -710,7 +713,6 @@ WHERE 1 = 1
                 }
                 datos.CerrarConexion();
 
-                // 2. Devolver el stock original a los productos
                 foreach (var item in lineasOriginales)
                 {
                     AccesoDatos upd = new AccesoDatos();
@@ -721,27 +723,26 @@ WHERE 1 = 1
                     upd.CerrarConexion();
                 }
 
-                // 3. Eliminar el detalle viejo
                 AccesoDatos del = new AccesoDatos();
                 del.setearConsulta("DELETE FROM Detalle_Venta WHERE IdVenta = @idVenta");
                 del.setearParametro("@idVenta", venta.Id);
                 del.ejecutarAccion();
                 del.CerrarConexion();
 
-                // 4. Actualizar la cabecera de la venta (INCLUYENDO TIPO DE VENTA)
-                decimal total = venta.Lineas.Sum(l => l.Subtotal);
+                decimal totalFinal = venta.TotalFinal;
+
                 AccesoDatos updCab = new AccesoDatos();
-                updCab.setearConsulta("UPDATE Ventas SET IdCliente = @cliente, Fecha = @fecha, MetodoPago = @metodo, TipoVenta = @tipoVenta, Total = @total WHERE Id = @idVenta");
+                updCab.setearConsulta("UPDATE Ventas SET IdCliente = @cliente, Fecha = @fecha, MetodoPago = @metodo, TipoVenta = @tipoVenta, Descuento = @descuento, Total = @total WHERE Id = @idVenta");
                 updCab.setearParametro("@cliente", venta.Cliente.Id);
                 updCab.setearParametro("@fecha", venta.Fecha);
                 updCab.setearParametro("@metodo", venta.MetodoPago ?? "");
-                updCab.setearParametro("@tipoVenta", venta.TipoVenta ?? "Final"); // GUARDANDO LA COLUMNA NUEVA AL EDITAR
-                updCab.setearParametro("@total", total);
+                updCab.setearParametro("@tipoVenta", venta.TipoVenta ?? "Final");
+                updCab.setearParametro("@descuento", venta.Descuento); // GUARDANDO EL DESCUENTO
+                updCab.setearParametro("@total", totalFinal); // GUARDANDO EL TOTAL FINAL
                 updCab.setearParametro("@idVenta", venta.Id);
                 updCab.ejecutarAccion();
                 updCab.CerrarConexion();
 
-                // 5. Insertar el nuevo detalle y restar el nuevo stock
                 foreach (var linea in venta.Lineas)
                 {
                     AccesoDatos ins = new AccesoDatos();

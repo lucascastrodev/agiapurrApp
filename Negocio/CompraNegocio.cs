@@ -41,18 +41,29 @@ namespace Negocio
 
                     datos.LimpiarParametros();
 
-                    // --- NUEVA LÓGICA: ACTUALIZA STOCK Y PRECIO NETO (COSTO) ---
-                    datos.setearConsulta(
-                        "UPDATE Productos SET StockActual = StockActual + @cant, PrecioNeto = @precio WHERE Id = @idProd");
+                    // --- LÓGICA DE PROTECCIÓN DE MARGEN ---
+                    // Se suma el stock siempre.
+                    // El PrecioNeto SOLO se actualiza si el nuevo precio es MAYOR al actual, 
+                    // o si el precio actual es cero (producto nuevo sin precio previo).
+                    datos.setearConsulta(@"
+                        UPDATE Productos 
+                        SET StockActual = StockActual + @cant, 
+                            PrecioNeto = CASE 
+                                            WHEN @precio > PrecioNeto THEN @precio
+                                            WHEN PrecioNeto IS NULL OR PrecioNeto = 0 THEN @precio
+                                            ELSE PrecioNeto 
+                                         END
+                        WHERE Id = @idProd");
 
                     datos.setearParametro("@cant", linea.Cantidad);
-                    datos.setearParametro("@precio", linea.PrecioUnitario); // <-- Se agrega el nuevo costo
+                    datos.setearParametro("@precio", linea.PrecioUnitario);
                     datos.setearParametro("@idProd", linea.Producto.Id);
                     datos.ejecutarAccion();
 
                     datos.LimpiarParametros();
 
-                    // Registrar precio de compra en el historial
+                    // Registrar precio de compra en el historial SIEMPRE
+                    // (Para que quede el registro de que compraste barato, aunque no afecte el precio de venta)
                     datos.setearConsulta(@"
                 INSERT INTO precios_compra (IdProducto, IdProveedor, Precio, Fecha)
                 VALUES (@idProd, @idProv, @precio, GETDATE())");

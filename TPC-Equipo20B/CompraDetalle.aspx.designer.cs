@@ -15,6 +15,15 @@ namespace TPC_Equipo20B
     {
 
         /// <summary>
+        /// Control btnImprimir.
+        /// </summary>
+        /// <remarks>
+        /// Campo generado automáticamente.
+        /// Para modificarlo, mueva la declaración del campo del archivo del diseñador al archivo de código subyacente.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button btnImprimir;
+
+        /// <summary>
         /// Control btnCerrar.
         /// </summary>
         /// <remarks>
@@ -42,15 +51,6 @@ namespace TPC_Equipo20B
         protected global::System.Web.UI.WebControls.Label lblMotivo;
 
         /// <summary>
-        /// Control lblFechaCanc.
-        /// </summary>
-        /// <remarks>
-        /// Campo generado automáticamente.
-        /// Para modificarlo, mueva la declaración del campo del archivo del diseñador al archivo de código subyacente.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lblFechaCanc;
-
-        /// <summary>
         /// Control lblUsuarioCanc.
         /// </summary>
         /// <remarks>
@@ -60,13 +60,22 @@ namespace TPC_Equipo20B
         protected global::System.Web.UI.WebControls.Label lblUsuarioCanc;
 
         /// <summary>
-        /// Control lblProveedor.
+        /// Control lblFechaCanc.
         /// </summary>
         /// <remarks>
         /// Campo generado automáticamente.
         /// Para modificarlo, mueva la declaración del campo del archivo del diseñador al archivo de código subyacente.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Label lblProveedor;
+        protected global::System.Web.UI.WebControls.Label lblFechaCanc;
+
+        /// <summary>
+        /// Control lblCompraId.
+        /// </summary>
+        /// <remarks>
+        /// Campo generado automáticamente.
+        /// Para modificarlo, mueva la declaración del campo del archivo del diseñador al archivo de código subyacente.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Label lblCompraId;
 
         /// <summary>
         /// Control lblFecha.
@@ -85,6 +94,15 @@ namespace TPC_Equipo20B
         /// Para modificarlo, mueva la declaración del campo del archivo del diseñador al archivo de código subyacente.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Label lblUsuario;
+
+        /// <summary>
+        /// Control lblProveedor.
+        /// </summary>
+        /// <remarks>
+        /// Campo generado automáticamente.
+        /// Para modificarlo, mueva la declaración del campo del archivo del diseñador al archivo de código subyacente.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Label lblProveedor;
 
         /// <summary>
         /// Control lblObservaciones.

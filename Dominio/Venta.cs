@@ -14,6 +14,7 @@ namespace Dominio
         public string NumeroNC { get; set; }
         public string MetodoPago { get; set; }
 
+        public decimal Descuento { get; set; }
         public string TipoVenta { get; set; }
 
         public List<VentaLinea> Lineas { get; set; } = new List<VentaLinea>();
@@ -35,5 +36,28 @@ namespace Dominio
         public string MotivoCancelacion { get; set; }
         public DateTime? FechaCancelacion { get; set; }
         public Usuario UsuarioCancelacion { get; set; }
+        
+        public decimal Subtotal
+        {
+            get
+            {
+                return Lineas != null ? Lineas.Sum(l => l.Subtotal) : 0;
+            }
+        }
+        public decimal MontoDescuento
+        {
+            get
+            {
+                return Subtotal * (Descuento / 100m);
+            }
+        }
+
+        public decimal TotalFinal
+        {
+            get
+            {
+                return Subtotal - MontoDescuento;
+            }
+        }
     }
 }

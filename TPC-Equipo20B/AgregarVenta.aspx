@@ -56,22 +56,20 @@
             margin: 0;
         }
 
-        /* --- AJUSTES PARA SOPORTAR 40 PRODUCTOS --- */
         .grid-container {
             border: 1px solid #e9ecef;
             border-radius: 12px;
             background-color: #fff;
-            max-height: 380px; /* Mantiene la caja en un tamaño fijo */
-            overflow-y: auto; /* Habilita el scroll interno si se pasan los ítems */
+            max-height: 380px;
+            overflow-y: auto;
         }
 
-        /* Encabezado fijo al hacer scroll */
         .table thead th {
             position: sticky;
             top: 0;
             background-color: #f8f9fa !important;
             z-index: 10;
-            box-shadow: 0 1px 0 #dee2e6; /* Evita que el borde desaparezca con el scroll */
+            box-shadow: 0 1px 0 #dee2e6;
             font-weight: 600;
             color: #495057;
             text-transform: uppercase;
@@ -293,7 +291,14 @@
                                 </asp:GridView>
                             </div>
 
-                            <div class="mt-4 p-3 bg-white rounded-3 border d-flex justify-content-between align-items-center shadow-sm border-start border-success border-5">
+                            <div id="divDescuentoAdmin" runat="server" class="mt-4 mb-2 p-3 bg-white rounded-3 border d-flex justify-content-between align-items-center shadow-sm border-start border-warning border-5">
+                                <h5 class="mb-0 text-muted fs-6 fw-bold text-uppercase ps-2 d-flex align-items-center gap-2">
+                                    <span class="material-symbols-outlined text-warning">local_offer</span> Descuento Extra (%)
+                                </h5>
+                                <asp:TextBox ID="txtDescuento" runat="server" CssClass="form-control text-end fw-bold text-danger fs-5" Style="width: 100px;" placeholder="0" AutoPostBack="true" OnTextChanged="txtDescuento_TextChanged" oninput="this.value = this.value.replace(/[^0-9]/g, '');" />
+                            </div>
+
+                            <div class="p-3 bg-white rounded-3 border d-flex justify-content-between align-items-center shadow-sm border-start border-success border-5">
                                 <h4 id="lblTxtTotalRemito" runat="server" class="mb-0 text-muted fs-5 fw-bold text-uppercase ps-2">Total Remito</h4>
                                 <asp:Label ID="lblTotal" runat="server" CssClass="fw-bold text-success fs-2 m-0 text-nowrap" Text="$ 0,00"></asp:Label>
                             </div>

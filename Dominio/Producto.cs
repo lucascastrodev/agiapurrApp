@@ -26,7 +26,7 @@ namespace Dominio
         public List<PrecioCompra> PreciosCompra { get; set; } = new List<PrecioCompra>();
 
         // -----------------------------------------------------------
-        // PRECIO MAYORISTA (Columna Z en tu Excel)
+        // PRECIO MAYORISTA (Columna Z en tu Excel) - REDONDEADO A 100
         // -----------------------------------------------------------
         public decimal PrecioMayorista
         {
@@ -43,24 +43,30 @@ namespace Dominio
 
                 if (neto == 0) return 0;
 
+                decimal mayoristaExacto = 0;
+
                 if (Proveedor.VendeConIVA)
                 {
                     // Fórmula Excel: =SUMA(X7:Y7) (Es decir, Neto + 21% IVA)
-                    return neto * 1.21m;
+                    mayoristaExacto = neto * 1.21m;
                 }
                 else
                 {
                     // Fórmula Excel: =X16 / (1 - % Editable)
                     decimal porcentajeEditable = PorcentajeGanancia / 100m;
-                    if (porcentajeEditable >= 1m) porcentajeEditable = 0.99m; // Salvavidas matemático
+                    if (porcentajeEditable >= 1m) porcentajeEditable = 0.99m;
 
-                    return neto / (1m - porcentajeEditable);
+                    mayoristaExacto = neto / (1m - porcentajeEditable);
                 }
+
+                // Redondeo SIEMPRE para arriba al múltiplo de 100 más cercano
+                // Ej: 10472.64 -> 10500
+                return Math.Ceiling(mayoristaExacto / 100m) * 100m;
             }
         }
 
         // -----------------------------------------------------------
-        // PRECIO CONSUMIDOR FINAL
+        // PRECIO CONSUMIDOR FINAL - REDONDEADO A 100
         // -----------------------------------------------------------
         public decimal PrecioVenta
         {
@@ -68,23 +74,27 @@ namespace Dominio
             {
                 if (Proveedor == null) return 0;
 
-                // Z = Precio Mayorista (Traemos el valor calculado arriba)
+                // Z = Precio Mayorista (Traemos el valor calculado arriba ya redondeado a 100)
                 decimal mayorista = this.PrecioMayorista;
                 if (mayorista == 0) return 0;
 
                 // Tu excel usa el 25% FIJO para Consumidor Final en todos los casos
                 decimal porcentajeCF = 0.25m;
+                decimal finalExacto = 0;
 
                 if (Proveedor.VendeConIVA)
                 {
                     // Fórmula Excel: =(Z7 * 25%) + Z7
-                    return (mayorista * porcentajeCF) + mayorista;
+                    finalExacto = (mayorista * porcentajeCF) + mayorista;
                 }
                 else
                 {
                     // Fórmula Excel: =Z16 / (1 - 25%)
-                    return mayorista / (1m - porcentajeCF);
+                    finalExacto = mayorista / (1m - porcentajeCF);
                 }
+
+                // Redondeo SIEMPRE para arriba al múltiplo de 100 más cercano
+                return Math.Ceiling(finalExacto / 100m) * 100m;
             }
         }
     }
