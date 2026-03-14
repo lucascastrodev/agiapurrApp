@@ -4,6 +4,26 @@
 
 <asp:Content ID="Content1" ContentPlaceHolderID="MainContent" runat="server">
 
+    <% if (Request.QueryString["modo"] == "iframe") { %>
+        <style type="text/css">
+            /* Ocultar barra de navegación, header y footer */
+            nav, header, footer, .navbar, .navbar-expand-sm, .navbar-expand-lg, .fixed-top { 
+                display: none !important; 
+                visibility: hidden !important;
+                height: 0 !important;
+            }
+            /* Resetear los márgenes del body para que no quede el hueco blanco arriba */
+            body { 
+                padding-top: 0 !important; 
+                background-color: transparent !important;
+            }
+            form, main {
+                padding-top: 0 !important;
+                margin-top: 0 !important;
+            }
+        </style>
+    <% } %>
+
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
 
     <style>

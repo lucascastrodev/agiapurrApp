@@ -132,18 +132,18 @@ namespace TPC_Equipo20B
                 .ThenBy(l => l.Producto.Descripcion)
                 .ToList();
 
-                // LÍMITES DINÁMICOS Y ASIGNACIÓN DE CLASES CSS
+                // LÍMITES DINÁMICOS Y ASIGNACIÓN DE CLASES CSS PARA IMPRESIÓN
                 if (esConsumidorFinal)
                 {
                     // Consumidor Final: Máximo 25 ítems y clase de letra grande
                     if (lineasOrdenadas.Count > 25) lineasOrdenadas = lineasOrdenadas.Take(25).ToList();
-                    printContainer.Attributes["class"] = "py-3 print-mode-cf";
+                    printContainer.Attributes["class"] = "print-mode-cf";
                 }
                 else
                 {
-                    // Mayorista: Máximo 40 ítems y clase de letra chica
+                    // Mayorista: Máximo 40 ítems y clase de letra intermedia
                     if (lineasOrdenadas.Count > 40) lineasOrdenadas = lineasOrdenadas.Take(40).ToList();
-                    printContainer.Attributes["class"] = "py-3 print-mode-mayorista";
+                    printContainer.Attributes["class"] = "print-mode-mayorista";
                 }
 
                 gvLineas.DataSource = lineasOrdenadas;

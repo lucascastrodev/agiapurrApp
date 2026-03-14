@@ -145,10 +145,19 @@
 
                         <div class="mb-4 position-relative">
                             <label for="ddlProducto" class="form-label">Seleccionar Producto</label>
-                            <div class="input-group input-group-lg">
+
+                            <div class="input-group input-group-lg shadow-sm rounded-3">
                                 <span class="input-group-text bg-light border-end-0"><span class="material-symbols-outlined text-muted">search</span></span>
                                 <asp:DropDownList ID="ddlProducto" runat="server" CssClass="form-select border-start-0 fs-6"></asp:DropDownList>
+
+                                <button type="button" class="btn btn-success-custom px-3 d-flex align-items-center justify-content-center" data-bs-toggle="modal" data-bs-target="#modalIframeProducto" title="Crear Nuevo Producto">
+                                    <span class="material-symbols-outlined">add</span>
+                                </button>
+                                <asp:LinkButton ID="btnActualizarLista" runat="server" CssClass="btn btn-outline-secondary px-3 d-flex align-items-center justify-content-center" OnClick="btnActualizarLista_Click" CausesValidation="false" title="Actualizar Lista">
+                                    <span class="material-symbols-outlined">refresh</span>
+                                </asp:LinkButton>
                             </div>
+
                             <div style="height: 18px;">
                                 <asp:RequiredFieldValidator ID="rfvProducto" runat="server" ControlToValidate="ddlProducto" ErrorMessage="Seleccione un producto" InitialValue="0" ValidationGroup="AgregarLinea" CssClass="error-flotante" Display="Dynamic"></asp:RequiredFieldValidator>
                             </div>
@@ -255,6 +264,28 @@
         </div>
     </div>
 
+    <div class="modal fade" id="modalIframeProducto" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content border-0 shadow rounded-4">
+                <div class="modal-header bg-success text-white border-bottom-0 pb-3">
+                    <h5 class="fw-bold mb-0 d-flex align-items-center gap-2">
+                        <span class="material-symbols-outlined">add_box</span> Carga de Nuevo Producto
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0 bg-light" style="height: 65vh; overflow: hidden;">
+
+                    <iframe id="iframeProducto" src="AgregarProducto.aspx?modo=iframe" width="100%" height="100%" style="border: none;"></iframe>
+
+                </div>
+                <div class="modal-footer bg-light justify-content-between border-top-0 py-3 rounded-bottom-4">
+                    <span class="text-muted small"><i class="bi bi-info-circle text-primary"></i><b>Instrucciones:</b> Guardá el producto, cerrá esta ventana y presioná el botón verde de actualizar (↻).</span>
+                    <button type="button" class="btn btn-outline-secondary px-4 fw-bold" data-bs-dismiss="modal">Cerrar Ventana</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="modal fade" id="modalCancelarCompra" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow rounded-4">
@@ -284,7 +315,6 @@
                 </div>
                 <div class="modal-footer bg-light justify-content-center border-top-0 rounded-bottom-4 py-3 gap-2">
                     <button type="button" class="btn btn-outline-secondary px-4 fw-bold" data-bs-dismiss="modal">Revisar de nuevo</button>
-
                     <asp:Button ID="btnGuardarDefinitivo" runat="server" Text="Sí, procesar ahora" CssClass="btn btn-success-custom px-4 fw-bold" OnClick="btnGuardar_Click" CausesValidation="false" />
                 </div>
             </div>
@@ -308,11 +338,9 @@
 
     <script>
         function mostrarModalExito() {
-            // Cerramos el modal de pregunta
             var modalSeguridad = bootstrap.Modal.getInstance(document.getElementById('modalSeguridadGuardar'));
             if (modalSeguridad) modalSeguridad.hide();
 
-            // Abrimos el de éxito
             var myModal = new bootstrap.Modal(document.getElementById('modalExito'));
             myModal.show();
         }
@@ -321,6 +349,15 @@
             var myModal = bootstrap.Modal.getInstance(document.getElementById('modalSeguridadGuardar'));
             if (myModal) myModal.hide();
         }
+
+        // --- SCRIPT PARA LIMPIAR EL IFRAME AL CERRARLO ---
+        document.addEventListener("DOMContentLoaded", function () {
+            var modalIframe = document.getElementById('modalIframeProducto');
+            modalIframe.addEventListener('hidden.bs.modal', function (event) {
+                // Forzamos al Iframe a recargar para que aparezca vacío la próxima vez que se abra
+                document.getElementById('iframeProducto').src = "AgregarProducto.aspx?modo=iframe";
+            });
+        });
     </script>
 
 </asp:Content>

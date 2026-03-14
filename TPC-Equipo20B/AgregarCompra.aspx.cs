@@ -77,6 +77,35 @@ namespace TPC_Equipo20B
             CargarProductosPorProveedor(idProveedor);
         }
 
+        // --- BOTÓN PARA ACTUALIZAR LA LISTA DESDE EL MODAL ---
+        protected void btnActualizarLista_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (ddlProveedor.SelectedValue != "0")
+                {
+                    int idProveedor = int.Parse(ddlProveedor.SelectedValue);
+                    string productoSeleccionado = ddlProducto.SelectedValue;
+
+                    // Recargamos los productos del proveedor
+                    CargarProductosPorProveedor(idProveedor);
+
+                    // Intentamos mantener seleccionado el que estaba antes, por comodidad
+                    if (ddlProducto.Items.FindByValue(productoSeleccionado) != null)
+                    {
+                        ddlProducto.SelectedValue = productoSeleccionado;
+                    }
+
+                    lblError.Visible = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                lblError.Text = "Error al actualizar la lista: " + ex.Message;
+                lblError.Visible = true;
+            }
+        }
+
         protected void btnAgregarLinea_Click(object sender, EventArgs e)
         {
             if (ddlProducto.SelectedValue == "0" ||
@@ -257,14 +286,12 @@ namespace TPC_Equipo20B
             }
         }
 
-        // Evento que se dispara desde el Modal de Cancelar
         protected void btnConfirmarCancelar_Click(object sender, EventArgs e)
         {
             Session.Remove("LineasCompra");
             Response.Redirect("Compras.aspx", false);
         }
 
-        // Mantenemos el método viejo por si acaso
         protected void btnCancelar_Click(object sender, EventArgs e)
         {
             Session.Remove("LineasCompra");

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Web.UI;
 using Dominio;
 using Negocio;
 
@@ -30,6 +31,9 @@ namespace TPC_Equipo20B
                 txtLocalidad.Text = usuario.Localidad;
                 txtUsername.Text = usuario.Username;
 
+                // Cargar la nueva propiedad Observaciones
+                txtObservaciones.Text = usuario.Observaciones;
+
                 // Mostrar rol(es)
                 if (usuario.Roles != null && usuario.Roles.Count > 0)
                 {
@@ -43,6 +47,9 @@ namespace TPC_Equipo20B
 
         protected void btnGuardar_Click(object sender, EventArgs e)
         {
+            // Cerramos forzosamente el modal de pregunta para que no quede tildado en pantalla
+            ScriptManager.RegisterStartupScript(this, this.GetType(), "PopCerrar", "cerrarModalSeguridad();", true);
+
             if (!Page.IsValid)
                 return;
 
@@ -58,6 +65,9 @@ namespace TPC_Equipo20B
                 usuario.Direccion = string.IsNullOrWhiteSpace(txtDireccion.Text) ? null : txtDireccion.Text.Trim();
                 usuario.Localidad = string.IsNullOrWhiteSpace(txtLocalidad.Text) ? null : txtLocalidad.Text.Trim();
 
+                // Guardar las observaciones
+                usuario.Observaciones = txtObservaciones.Text.Trim();
+
                 // Guardar en la base de datos
                 UsuarioNegocio negocio = new UsuarioNegocio();
                 bool actualizado = negocio.ActualizarUsuario(usuario);
@@ -68,28 +78,34 @@ namespace TPC_Equipo20B
                     Session["Usuario"] = usuario;
                     Session["UsuarioNombre"] = usuario.Nombre;
 
-                    lblMensaje.Text = "<div class='alert alert-success'>Perfil actualizado correctamente</div>";
+                    // Configuramos el mensaje y disparamos el modal de éxito
+                    lblMensajeExitoModal.Text = "Tus datos personales y observaciones han sido actualizados con éxito.";
+                    ScriptManager.RegisterStartupScript(this, this.GetType(), "PopExito", "mostrarModalExito();", true);
                 }
                 else
                 {
-                    lblMensaje.Text = "<div class='alert alert-danger'>Error al actualizar el perfil</div>";
+                    lblMensaje.Text = "<div class='alert alert-danger mt-3'>Error al actualizar el perfil en la base de datos.</div>";
+                    lblMensaje.CssClass = "d-block";
                 }
             }
             catch (Exception ex)
             {
-                lblMensaje.Text = $"<div class='alert alert-danger'>Error: {ex.Message}</div>";
+                lblMensaje.Text = $"<div class='alert alert-danger mt-3'>Ocurrió un error: {ex.Message}</div>";
+                lblMensaje.CssClass = "d-block";
             }
         }
 
         protected void btnCancelar_Click(object sender, EventArgs e)
         {
-            // Recargar los datos originales
-            CargarDatosUsuario();
-            lblMensaje.Text = "<div class='alert alert-info'>Cambios cancelados</div>";
+            // Al cancelar, lo sacamos del formulario y lo llevamos al inicio/dashboard
+            Response.Redirect("Default.aspx", false);
         }
 
         protected void btnCambiarPassword_Click(object sender, EventArgs e)
         {
+            // Cerramos forzosamente el modal de contraseña para que no quede tildado
+            ScriptManager.RegisterStartupScript(this, this.GetType(), "PopCerrarPass", "cerrarModalPassword();", true);
+
             if (!Page.IsValid)
                 return;
 
@@ -103,7 +119,7 @@ namespace TPC_Equipo20B
 
                 if (validacion == null)
                 {
-                    lblMensajePassword.Text = "<div class='alert alert-danger'>La contraseña actual es incorrecta</div>";
+                    lblMensajePassword.Text = "<div class='alert alert-danger'>La contraseña actual es incorrecta. Verificá y volvé a intentarlo.</div>";
                     return;
                 }
 
@@ -112,16 +128,19 @@ namespace TPC_Equipo20B
 
                 if (actualizado)
                 {
-                    lblMensajePassword.Text = "<div class='alert alert-success'>Contraseña actualizada correctamente</div>";
-
-                    // Limpiar campos
+                    // Limpiar campos por seguridad
                     txtPasswordActual.Text = "";
                     txtPasswordNueva.Text = "";
                     txtPasswordConfirmar.Text = "";
+                    lblMensajePassword.Text = "";
+
+                    // Disparamos el modal de éxito
+                    lblMensajeExitoModal.Text = "Tu contraseña ha sido actualizada correctamente.";
+                    ScriptManager.RegisterStartupScript(this, this.GetType(), "PopExitoPass", "mostrarModalExito();", true);
                 }
                 else
                 {
-                    lblMensajePassword.Text = "<div class='alert alert-danger'>Error al actualizar la contraseña</div>";
+                    lblMensajePassword.Text = "<div class='alert alert-danger'>Ocurrió un error en el servidor al intentar actualizar la contraseña.</div>";
                 }
             }
             catch (Exception ex)

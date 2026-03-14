@@ -69,8 +69,14 @@ namespace TPC_Equipo20B
                 }
             }
 
-            // Ordenar por ID o Nombre para facilitar el punteo
+            // Ordenar por Descripción para facilitar el punteo
             var lineasOrdenadas = lineas.OrderBy(l => l.Producto.Descripcion).ToList();
+
+            // TOPE ESTRÍCTO DE 50 PRODUCTOS PARA ENTRAR EN 1 SOLA HOJA
+            if (lineasOrdenadas.Count > 50)
+            {
+                lineasOrdenadas = lineasOrdenadas.Take(50).ToList();
+            }
 
             gvLineas.DataSource = lineasOrdenadas;
             gvLineas.DataBind();
