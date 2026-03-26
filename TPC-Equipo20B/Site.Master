@@ -242,6 +242,7 @@
                             { %>
                         <li class="nav-item"><a class="nav-link" href="/Ventas.aspx">Ventas</a></li>
                         <li class="nav-item"><a class="nav-link" href="/Compras.aspx">Compras</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/PedidosProveedores.aspx">Pedidos Prov.</a></li>
                         <% }
                             else
                             { %>

@@ -33,7 +33,7 @@
     </style>
 
     <div class="mb-4 border-bottom pb-2">
-        <h2 class="fw-bold text-dark mb-0">Panel de Control</h2>
+        <h2 class="fw-bold text-dark mb-0">Dashboard</h2>
         <p class="text-muted small mb-0 mt-1">Resumen general del negocio</p>
     </div>
 

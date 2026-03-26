@@ -69,6 +69,7 @@
     <Content Include="AgregarCliente.aspx" />
     <Content Include="AgregarCompra.aspx" />
     <Content Include="AgregarMarca.aspx" />
+    <Content Include="AgregarPedidoProveedor.aspx" />
     <Content Include="AgregarProducto.aspx" />
     <Content Include="AgregarProveedor.aspx" />
     <Content Include="AgregarVenta.aspx" />
@@ -83,6 +84,7 @@
     <Content Include="Global.asax" />
     <Content Include="logo.png" />
     <Content Include="Marcas.aspx" />
+    <Content Include="PedidosProveedores.aspx" />
     <Content Include="Perfil.aspx" />
     <Content Include="Productos.aspx" />
     <Content Include="Proveedores.aspx" />
@@ -122,6 +124,13 @@
     </Compile>
     <Compile Include="AgregarMarca.aspx.designer.cs">
       <DependentUpon>AgregarMarca.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="AgregarPedidoProveedor.aspx.cs">
+      <DependentUpon>AgregarPedidoProveedor.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="AgregarPedidoProveedor.aspx.designer.cs">
+      <DependentUpon>AgregarPedidoProveedor.aspx</DependentUpon>
     </Compile>
     <Compile Include="AgregarProducto.aspx.cs">
       <DependentUpon>AgregarProducto.aspx</DependentUpon>
@@ -209,6 +218,13 @@
     </Compile>
     <Compile Include="Marcas.aspx.designer.cs">
       <DependentUpon>Marcas.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="PedidosProveedores.aspx.cs">
+      <DependentUpon>PedidosProveedores.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="PedidosProveedores.aspx.designer.cs">
+      <DependentUpon>PedidosProveedores.aspx</DependentUpon>
     </Compile>
     <Compile Include="Perfil.aspx.cs">
       <DependentUpon>Perfil.aspx</DependentUpon>
