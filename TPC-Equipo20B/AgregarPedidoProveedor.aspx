@@ -67,14 +67,6 @@
                             </div>
                         </div>
 
-                        <div class="mb-5 position-relative">
-                            <label for="txtObservaciones" class="form-label">Observaciones / Notas para el envío (Opcional)</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light border-end-0 align-items-start pt-2"><span class="material-symbols-outlined text-muted">edit_note</span></span>
-                                <asp:TextBox ID="txtObservaciones" runat="server" CssClass="form-control border-start-0" TextMode="MultiLine" Rows="2" placeholder="Ej: Entregar por la puerta lateral, urgente..." />
-                            </div>
-                        </div>
-
                         <h5 class="fw-bold text-muted mb-4 border-bottom pb-2 fs-6 text-uppercase d-flex align-items-center gap-2">
                             <span class="material-symbols-outlined">add_shopping_cart</span> Añadir al Pedido
                         </h5>

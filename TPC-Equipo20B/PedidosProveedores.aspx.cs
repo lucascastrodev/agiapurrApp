@@ -1,9 +1,8 @@
-﻿using Dominio;
-using System;
+﻿using System;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-// using Dominio;
-// using Negocio;
+using Dominio;
+using Negocio;
 
 namespace TPC_Equipo20B
 {
@@ -12,10 +11,18 @@ namespace TPC_Equipo20B
         protected void Page_Load(object sender, EventArgs e)
         {
             Permisos.RequiereAdmin(this);
+
             if (!IsPostBack)
             {
-                // CargarPedidos(); // Lo implementaremos luego
+                CargarPedidos();
             }
+        }
+
+        private void CargarPedidos(string filtro = "")
+        {
+            PedidoProveedorNegocio negocio = new PedidoProveedorNegocio();
+            gvPedidos.DataSource = negocio.Listar(filtro);
+            gvPedidos.DataBind();
         }
 
         protected void btnNuevoPedido_Click(object sender, EventArgs e)
@@ -25,8 +32,7 @@ namespace TPC_Equipo20B
 
         protected void btnBuscarPedido_Click(object sender, EventArgs e)
         {
-            // string filtro = txtBuscarPedido.Text.Trim();
-            // CargarPedidos(filtro); // Lo implementaremos luego
+            CargarPedidos(txtBuscarPedido.Text.Trim());
         }
 
         protected void gvPedidos_RowCommand(object sender, GridViewCommandEventArgs e)
@@ -35,16 +41,19 @@ namespace TPC_Equipo20B
 
             if (e.CommandName == "Detalle")
             {
+                
                 Response.Redirect("PedidoProveedorDetalle.aspx?id=" + idPedido, false);
             }
             else if (e.CommandName == "Editar")
             {
+                // Mandamos el ID por la URL para que el formulario sepa que tiene que cargar datos
                 Response.Redirect("AgregarPedidoProveedor.aspx?id=" + idPedido, false);
             }
             else if (e.CommandName == "Cancelar")
             {
-                // Lógica para cancelar el pedido
-                // CargarPedidos();
+                PedidoProveedorNegocio negocio = new PedidoProveedorNegocio();
+                negocio.Cancelar(idPedido, "Cancelado por el administrador.");
+                CargarPedidos(txtBuscarPedido.Text.Trim());
             }
         }
 
@@ -52,31 +61,39 @@ namespace TPC_Equipo20B
         {
             if (e.Row.RowType == DataControlRowType.DataRow)
             {
-                // Aquí ocultaremos los botones de Editar o Recibir si el pedido ya está Cancelado o Recibido
-                // string estado = DataBinder.Eval(e.Row.DataItem, "Estado").ToString();
-                // LinkButton cmdEditar = (LinkButton)e.Row.FindControl("cmdEditar");
-                // LinkButton cmdRecibir = (LinkButton)e.Row.FindControl("cmdRecibir");
-                // LinkButton cmdCancelar = (LinkButton)e.Row.FindControl("cmdCancelar");
+                string estado = DataBinder.Eval(e.Row.DataItem, "Estado").ToString().ToUpper();
+
+                LinkButton cmdEditar = (LinkButton)e.Row.FindControl("cmdEditar");
+                LinkButton cmdRecibir = (LinkButton)e.Row.FindControl("cmdRecibir");
+                LinkButton cmdCancelar = (LinkButton)e.Row.FindControl("cmdCancelar");
+
+                // Regla de Negocio: Solo los pedidos "Pendientes" se pueden modificar, recibir o cancelar
+                if (estado != "PENDIENTE")
+                {
+                    if (cmdEditar != null) cmdEditar.Visible = false;
+                    if (cmdRecibir != null) cmdRecibir.Visible = false;
+                    if (cmdCancelar != null) cmdCancelar.Visible = false;
+                }
             }
         }
 
         protected void gvPedidos_PageIndexChanging(object sender, GridViewPageEventArgs e)
         {
             gvPedidos.PageIndex = e.NewPageIndex;
-            // CargarPedidos(txtBuscarPedido.Text);
+            CargarPedidos(txtBuscarPedido.Text.Trim());
         }
 
         protected void btnConfirmarRecepcion_Click(object sender, EventArgs e)
         {
             int idPedido = int.Parse(hfPedidoId.Value);
 
-            // 1. Cambiar estado del pedido a "Recibido" en la BD
-
-            // 2. Redirigir a AgregarCompra para que haga el ingreso real de stock
-            // Response.Redirect("AgregarCompra.aspx?idPedido=" + idPedido, false);
+            // LA RECEPCIÓN: En lugar de procesarlo acá, lo mandamos a tu pantalla de Compras.
+            // Le pasamos el idPedido por URL. Así, cuando modifiquemos AgregarCompra.aspx,
+            // va a poder leer este ID, buscar los productos y llenar el carrito de la compra automáticamente.
+            Response.Redirect("AgregarCompra.aspx?idPedido=" + idPedido, false);
         }
 
-        // Métodos auxiliares para la interfaz visual
+        // --- MÉTODOS VISUALES ---
         protected string FormatearEstadoTexto(object estadoObj)
         {
             if (estadoObj == null) return "Pendiente";
@@ -85,20 +102,19 @@ namespace TPC_Equipo20B
 
         protected string ObtenerCssPorEstado(object estadoObj)
         {
-            if (estadoObj == null) return "bg-warning bg-opacity-10"; // Naranja para Pendiente
+            if (estadoObj == null) return "bg-warning bg-opacity-10 text-warning";
 
             string estado = estadoObj.ToString().ToUpper();
             switch (estado)
             {
                 case "PENDIENTE":
-                case "ENVIADO":
-                    return "bg-warning bg-opacity-10"; // Naranja
+                    return "bg-warning bg-opacity-10 text-warning"; // Naranja
                 case "RECIBIDO":
-                    return "bg-success bg-opacity-10"; // Verde
+                    return "bg-success bg-opacity-10 text-success"; // Verde
                 case "CANCELADO":
-                    return "bg-danger bg-opacity-10";  // Rojo
+                    return "bg-danger bg-opacity-10 text-danger";  // Rojo
                 default:
-                    return "bg-info bg-opacity-10";    // Celeste por defecto
+                    return "bg-info bg-opacity-10 text-info";    // Celeste
             }
         }
     }

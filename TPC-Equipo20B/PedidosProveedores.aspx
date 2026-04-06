@@ -75,7 +75,7 @@
     <div class="d-flex align-items-center justify-content-between mb-4">
         <h2 id="lblTituloPagina" runat="server" class="page-title m-0 d-flex align-items-center">
             <span class="icon-title-bg text-proveedores"><i class="bi bi-truck"></i></span>
-           Pedidos a Proveedores
+            Pedidos a Proveedores
         </h2>
 
         <asp:LinkButton ID="btnNuevoPedido" runat="server" CssClass="btn btn-proveedores px-4 shadow-sm" OnClick="btnNuevoPedido_Click">
@@ -104,7 +104,7 @@
 
                 <Columns>
                     <asp:BoundField DataField="Id" HeaderText="N° Pedido" ItemStyle-CssClass="fw-bold" />
-                    <asp:BoundField DataField="Fecha" HeaderText="Fecha Emisión" DataFormatString="{0:dd/MM/yyyy}" />
+                    <asp:BoundField DataField="FechaEmision" HeaderText="Fecha Emisión" DataFormatString="{0:dd/MM/yyyy}" />
 
                     <asp:TemplateField HeaderText="Proveedor" ItemStyle-CssClass="text-start col-flexible fw-medium" HeaderStyle-CssClass="text-start">
                         <ItemTemplate><%# Eval("Proveedor.Nombre") %></ItemTemplate>
@@ -142,8 +142,9 @@
                             </asp:LinkButton>
 
                             <asp:LinkButton ID="cmdCancelar" runat="server" CommandName="Cancelar" CommandArgument='<%# Eval("Id") %>'
-                                CssClass="btn btn-danger btn-grilla shadow-sm" ToolTip="Cancelar Pedido">
-                                <i class="bi bi-x-circle-fill"></i>
+                                CssClass="btn btn-danger btn-grilla shadow-sm" ToolTip="Cancelar Pedido"
+                                OnClientClick="return confirm('¿Estás seguro de que deseas cancelar este pedido? Esta acción no se puede deshacer.');">
+                                <i class="bi bi-x-circle-fill"></i> Cancelar
                             </asp:LinkButton>
                         </ItemTemplate>
                     </asp:TemplateField>

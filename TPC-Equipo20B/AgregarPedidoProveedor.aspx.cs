@@ -3,44 +3,80 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web.UI;
 using System.Web.UI.WebControls;
-// using Dominio;
-// using Negocio;
+using Dominio;
+using Negocio;
 
 namespace TPC_Equipo20B
 {
     public partial class AgregarPedidoProveedor : System.Web.UI.Page
     {
-        // En un futuro, esto será List<PedidoProveedorLinea>
-        // private List<PedidoProveedorLinea> Lineas
-        // {
-        //     get { return (List<PedidoProveedorLinea>)(Session["PedidoProvLineas"] ?? (Session["PedidoProvLineas"] = new List<PedidoProveedorLinea>())); }
-        //     set { Session["PedidoProvLineas"] = value; }
-        // }
+        // Lista temporal en memoria para armar el pedido antes de guardarlo
+        private List<PedidoProveedorLinea> Lineas
+        {
+            get { return (List<PedidoProveedorLinea>)(Session["PedidoProvLineas"] ?? (Session["PedidoProvLineas"] = new List<PedidoProveedorLinea>())); }
+            set { Session["PedidoProvLineas"] = value; }
+        }
 
         protected void Page_Load(object sender, EventArgs e)
         {
-            // Permisos.RequiereAdmin(this);
+            Permisos.RequiereAdmin(this);
 
             if (!IsPostBack)
             {
-                txtFecha.Text = DateTime.Now.ToString("yyyy-MM-dd");
                 CargarProveedores();
 
-                // Session["PedidoProvLineas"] = null; // Limpiar lista temporal al entrar
+                // VERIFICAMOS SI ESTAMOS EN MODO EDICIÓN
+                if (Request.QueryString["id"] != null)
+                {
+                    int idPedido = int.Parse(Request.QueryString["id"]);
+                    CargarPedidoParaEdicion(idPedido);
+                }
+                else
+                {
+                    // MODO ALTA NUEVA
+                    txtFecha.Text = DateTime.Now.ToString("yyyy-MM-dd");
+                    Session["PedidoProvLineas"] = null;
+                    ActualizarGrid();
+                }
+            }
+        }
+
+        private void CargarPedidoParaEdicion(int idPedido)
+        {
+            PedidoProveedorNegocio negocio = new PedidoProveedorNegocio();
+            PedidoProveedor pedido = negocio.ObtenerPorId(idPedido);
+
+            if (pedido != null)
+            {
+                // 1. Cambiamos títulos visuales
+                lblTituloPagina.InnerText = "Editar Pedido #" + pedido.Id;
+                lblSubtituloPagina.InnerText = "Modifique las cantidades o productos de la orden.";
+                btnGuardarDefinitivo.Text = "Guardar Cambios";
+
+                // 2. Cargamos controles
+                txtFecha.Text = pedido.FechaEmision.ToString("yyyy-MM-dd");
+
+                ddlProveedor.SelectedValue = pedido.Proveedor.Id.ToString();
+                ddlProveedor.Enabled = false; // Bloqueamos el proveedor para no romper los SKUs
+
+                // Cargamos los productos de ese proveedor en el segundo combo
+                CargarProductosDelProveedor(pedido.Proveedor.Id);
+
+                // 3. Cargamos el carrito en memoria
+                Lineas = pedido.Lineas;
+                ActualizarGrid();
             }
         }
 
         private void CargarProveedores()
         {
-            // ProveedorNegocio provNeg = new ProveedorNegocio();
-            // ddlProveedor.DataSource = provNeg.Listar();
-            // ddlProveedor.DataTextField = "Nombre";
-            // ddlProveedor.DataValueField = "Id";
-            // ddlProveedor.DataBind();
+            ProveedorNegocio provNeg = new ProveedorNegocio();
+            ddlProveedor.DataSource = provNeg.Listar();
+            ddlProveedor.DataTextField = "Nombre";
+            ddlProveedor.DataValueField = "Id";
+            ddlProveedor.DataBind();
 
-            // Dato falso temporal para maquetación
             ddlProveedor.Items.Insert(0, new ListItem("-- Seleccione un proveedor --", "0"));
-            ddlProveedor.Items.Insert(1, new ListItem("Distribuidora Mayorista S.A.", "1"));
         }
 
         protected void ddlProveedor_SelectedIndexChanged(object sender, EventArgs e)
@@ -51,6 +87,7 @@ namespace TPC_Equipo20B
             {
                 ddlProducto.Items.Clear();
                 ddlProducto.Items.Insert(0, new ListItem("-- Seleccione un proveedor primero --", "0"));
+                txtPrecio.Text = "";
                 return;
             }
 
@@ -59,16 +96,30 @@ namespace TPC_Equipo20B
 
         private void CargarProductosDelProveedor(int idProveedor)
         {
-            // ProductoProveedorNegocio prodProvNeg = new ProductoProveedorNegocio();
-            // ddlProducto.DataSource = prodProvNeg.ListarPorProveedor(idProveedor);
-            // ddlProducto.DataTextField = "DisplayCombo"; // Ej: "SKU123 - Bolson Yerba"
-            // ddlProducto.DataValueField = "Id";
-            // ddlProducto.DataBind();
+            ProductoProveedorNegocio prodProvNeg = new ProductoProveedorNegocio();
 
-            // Datos falsos temporales para maquetación
-            ddlProducto.Items.Clear();
+            // Suponiendo que tenés un método ListarPorProveedor en ProductoProveedorNegocio
+            var productos = prodProvNeg.ListarPorProveedor(idProveedor);
+
+            ddlProducto.DataSource = productos;
+            // Mostramos Código y Descripción juntos para que sea más fácil elegir
+            ddlProducto.DataTextField = "Descripcion";
+            ddlProducto.DataValueField = "Id";
+            ddlProducto.DataBind();
+
             ddlProducto.Items.Insert(0, new ListItem("-- Seleccione el producto --", "0"));
-            ddlProducto.Items.Insert(1, new ListItem("BOL001 - Bolson Yerba Mate 4x2", "1"));
+
+            // Si hay productos, los formateamos un poco (Opcional, depende de cómo los traigas)
+            foreach (ListItem item in ddlProducto.Items)
+            {
+                if (item.Value != "0")
+                {
+                    var prod = productos.FirstOrDefault(p => p.Id.ToString() == item.Value);
+                    if (prod != null) item.Text = $"{prod.Codigo} - {prod.Descripcion}";
+                }
+            }
+
+            txtPrecio.Text = "";
         }
 
         protected void ddlProducto_SelectedIndexChanged(object sender, EventArgs e)
@@ -81,11 +132,14 @@ namespace TPC_Equipo20B
 
             int idProductoProv = int.Parse(ddlProducto.SelectedValue);
 
-            // ProductoProveedorNegocio negocio = new ProductoProveedorNegocio();
-            // ProductoProveedor prod = negocio.ObtenerPorId(idProductoProv);
-            // txtPrecio.Text = prod.PrecioUnitario.ToString("0.00");
+            ProductoProveedorNegocio negocio = new ProductoProveedorNegocio();
+            ProductoProveedor prod = negocio.ObtenerPorId(idProductoProv);
 
-            txtPrecio.Text = "5500.00"; // Falso para maquetar
+            if (prod != null)
+            {
+                // Mostramos el precio unitario del catálogo del proveedor
+                txtPrecio.Text = prod.PrecioUnitario.ToString("0.00");
+            }
         }
 
         protected void btnAgregarLinea_Click(object sender, EventArgs e)
@@ -95,12 +149,38 @@ namespace TPC_Equipo20B
             // Bloquear el combo de Proveedor para que no lo cambien a mitad del pedido
             ddlProveedor.Enabled = false;
 
-            // 1. Obtener el producto de la DB
-            // 2. Crear nueva línea
-            // 3. Agregarlo a la lista "Lineas"
-            // 4. ActualizarGrid()
+            int idProductoProv = int.Parse(ddlProducto.SelectedValue);
+            int cantidad = int.Parse(txtCantidad.Text);
 
-            // Resetear campos
+            ProductoProveedorNegocio prodNeg = new ProductoProveedorNegocio();
+            ProductoProveedor producto = prodNeg.ObtenerPorId(idProductoProv);
+
+            if (producto != null)
+            {
+                // Crear nueva línea
+                PedidoProveedorLinea nuevaLinea = new PedidoProveedorLinea
+                {
+                    Producto = producto,
+                    Cantidad = cantidad,
+                    PrecioUnitario = producto.PrecioUnitario
+                    // El Subtotal se calcula solo gracias a la propiedad en la clase de Dominio
+                };
+
+                // Verificar si ya existe el producto en el carrito y sumar cantidad (opcional)
+                var lineaExistente = Lineas.FirstOrDefault(l => l.Producto.Id == producto.Id);
+                if (lineaExistente != null)
+                {
+                    lineaExistente.Cantidad += cantidad;
+                }
+                else
+                {
+                    Lineas.Add(nuevaLinea);
+                }
+
+                ActualizarGrid();
+            }
+
+            // Resetear campos para cargar el siguiente más rápido
             ddlProducto.SelectedIndex = 0;
             txtCantidad.Text = "";
             txtPrecio.Text = "";
@@ -113,20 +193,31 @@ namespace TPC_Equipo20B
             {
                 int index = Convert.ToInt32(e.CommandArgument);
 
-                // Lineas.RemoveAt(index);
-                // ActualizarGrid();
+                Lineas.RemoveAt(index);
+                ActualizarGrid();
 
-                // if (Lineas.Count == 0) ddlProveedor.Enabled = true; // Liberar proveedor si se vacía la lista
+                // Liberar proveedor si se vacía la lista por completo
+                if (Lineas.Count == 0)
+                {
+                    ddlProveedor.Enabled = true;
+                }
             }
         }
 
         private void ActualizarGrid()
         {
-            // gvLineas.DataSource = Lineas;
-            // gvLineas.DataBind();
+            gvLineas.DataSource = Lineas;
+            gvLineas.DataBind();
 
-            // decimal total = Lineas.Sum(l => l.PrecioUnitario * l.Cantidad);
-            // lblTotal.Text = total.ToString("C");
+            if (Lineas.Count > 0)
+            {
+                decimal total = Lineas.Sum(l => l.Subtotal);
+                lblTotal.Text = total.ToString("C");
+            }
+            else
+            {
+                lblTotal.Text = "$ 0,00";
+            }
         }
 
         protected void btnGuardar_Click(object sender, EventArgs e)
@@ -135,48 +226,45 @@ namespace TPC_Equipo20B
             {
                 ScriptManager.RegisterStartupScript(this, this.GetType(), "PopCerrar", "var modal = bootstrap.Modal.getInstance(document.getElementById('modalSeguridadGuardar')); if(modal) modal.hide();", true);
 
-                // Validaciones
-                if (ddlProveedor.SelectedValue == "0")
-                {
-                    lblMensajeFooter.Text = "Debe seleccionar un proveedor.";
-                    lblMensajeFooter.Visible = true;
-                    return;
-                }
+                if (ddlProveedor.SelectedValue == "0") return;
+                if (Lineas.Count == 0) return;
 
-                /*
-                if (Lineas.Count == 0)
-                {
-                    lblMensajeFooter.Text = "Debe añadir al menos un producto al pedido.";
-                    lblMensajeFooter.Visible = true;
-                    return;
-                }
-                
-                // Armar el objeto PedidoProveedor
                 PedidoProveedor pedido = new PedidoProveedor
                 {
                     Proveedor = new Proveedor { Id = int.Parse(ddlProveedor.SelectedValue) },
                     FechaEmision = DateTime.Parse(txtFecha.Text),
-                    Observaciones = txtObservaciones.Text,
                     Usuario = (Usuario)Session["Usuario"],
-                    Lineas = Lineas
+                    Lineas = Lineas,
+                    TotalEstimado = Lineas.Sum(l => l.Subtotal)
                 };
-                
-                PedidoProveedorNegocio negocio = new PedidoProveedorNegocio();
-                negocio.Generar(pedido);
-                */
 
-                // ScriptManager.RegisterStartupScript(this, this.GetType(), "PopExito", "mostrarModalExito();", true);
+                PedidoProveedorNegocio negocio = new PedidoProveedorNegocio();
+
+                // SI HAY UN ID EN LA URL, ACTUALIZAMOS. SINO, CREAMOS UNO NUEVO.
+                if (Request.QueryString["id"] != null)
+                {
+                    pedido.Id = int.Parse(Request.QueryString["id"]);
+                    negocio.Modificar(pedido);
+                }
+                else
+                {
+                    negocio.Generar(pedido);
+                }
+
+                Session["PedidoProvLineas"] = null;
+                ScriptManager.RegisterStartupScript(this, this.GetType(), "PopExito", "mostrarModalExito();", true);
             }
             catch (Exception ex)
             {
-                lblMensajeFooter.Text = "Error: " + ex.Message;
+                lblMensajeFooter.Text = "Error al procesar: " + ex.Message;
                 lblMensajeFooter.Visible = true;
             }
         }
 
         protected void btnConfirmarCancelar_Click(object sender, EventArgs e)
         {
-            // Session["PedidoProvLineas"] = null;
+            // Limpiar carrito y salir
+            Session["PedidoProvLineas"] = null;
             Response.Redirect("PedidosProveedores.aspx", false);
         }
     }
