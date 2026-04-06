@@ -23,7 +23,19 @@ namespace Dominio
 
         public decimal PrecioUnitario { get; set; }
 
+        public int UnidadesPorPack { get; set; }
+
         public bool Estado { get; set; }
+
+        public decimal SubtotalBruto { get; set; }
+        public decimal DescuentoPorcentaje { get; set; }
+        public decimal DescuentoMonto { get; set; }
+        public decimal SubtotalNeto { get; set; }
+        public decimal MontoIVA { get; set; }
+        public decimal MontoIIBB { get; set; }
+        public decimal MontoPercepcion { get; set; }
+
+        // Recordá que ya tenías la propiedad TotalEstimado
 
         // Constructor para inicializar los objetos anidados y evitar NullReferenceExceptions
         public ProductoProveedor()

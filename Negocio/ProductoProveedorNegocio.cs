@@ -6,7 +6,6 @@ namespace Negocio
 {
     public class ProductoProveedorNegocio
     {
-        // 1. Método para llenar el combo dependiendo de qué proveedor elegiste
         public List<ProductoProveedor> ListarPorProveedor(int idProveedor)
         {
             List<ProductoProveedor> lista = new List<ProductoProveedor>();
@@ -14,8 +13,7 @@ namespace Negocio
 
             try
             {
-                // Traemos los productos de ese proveedor que estén Activos (Estado = 1)
-                datos.setearConsulta("SELECT Id, IdProveedor, Codigo, Descripcion, IdMarca, PrecioUnitario, Estado FROM PRODUCTOS_PROVEEDOR WHERE IdProveedor = @idProv AND Estado = 1");
+                datos.setearConsulta("SELECT Id, IdProveedor, Codigo, Descripcion, IdMarca, PrecioUnitario, Estado, UnidadesPorPack FROM PRODUCTOS_PROVEEDOR WHERE IdProveedor = @idProv AND Estado = 1");
                 datos.setearParametro("@idProv", idProveedor);
 
                 datos.ejecutarLectura();
@@ -29,10 +27,12 @@ namespace Negocio
                     aux.PrecioUnitario = (decimal)datos.Lector["PrecioUnitario"];
                     aux.Estado = (bool)datos.Lector["Estado"];
 
+                    // Nueva lectura para los bultos
+                    aux.UnidadesPorPack = datos.Lector["UnidadesPorPack"] != DBNull.Value ? (int)datos.Lector["UnidadesPorPack"] : 1;
+
                     aux.Proveedor = new Proveedor();
                     aux.Proveedor.Id = (int)datos.Lector["IdProveedor"];
 
-                    // Manejo de nulos: Como IdMarca permitía NULL en la base de datos, lo validamos
                     aux.Marca = new Marca();
                     if (!(datos.Lector["IdMarca"] is DBNull))
                     {
@@ -53,13 +53,12 @@ namespace Negocio
             }
         }
 
-        // 2. Método para traer el Precio Unitario exacto cuando seleccionás el producto
         public ProductoProveedor ObtenerPorId(int id)
         {
             AccesoDatos datos = new AccesoDatos();
             try
             {
-                datos.setearConsulta("SELECT Id, IdProveedor, Codigo, Descripcion, IdMarca, PrecioUnitario, Estado FROM PRODUCTOS_PROVEEDOR WHERE Id = @id");
+                datos.setearConsulta("SELECT Id, IdProveedor, Codigo, Descripcion, IdMarca, PrecioUnitario, Estado, UnidadesPorPack FROM PRODUCTOS_PROVEEDOR WHERE Id = @id");
                 datos.setearParametro("@id", id);
 
                 datos.ejecutarLectura();
@@ -72,6 +71,9 @@ namespace Negocio
                     aux.Descripcion = (string)datos.Lector["Descripcion"];
                     aux.PrecioUnitario = (decimal)datos.Lector["PrecioUnitario"];
                     aux.Estado = (bool)datos.Lector["Estado"];
+
+                    // Nueva lectura para los bultos
+                    aux.UnidadesPorPack = datos.Lector["UnidadesPorPack"] != DBNull.Value ? (int)datos.Lector["UnidadesPorPack"] : 1;
 
                     aux.Proveedor = new Proveedor();
                     aux.Proveedor.Id = (int)datos.Lector["IdProveedor"];

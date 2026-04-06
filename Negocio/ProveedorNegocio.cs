@@ -13,10 +13,10 @@ namespace Negocio
 
             try
             {
-                // Agregamos VendeConIVA al SELECT
                 string consulta = @"
                     SELECT Id, Nombre, RazonSocial, Documento, Email, Telefono, 
-                           Direccion, Localidad, CondicionIVA, Activo, VendeConIVA
+                           Direccion, Localidad, CondicionIVA, Activo, VendeConIVA,
+                           DescuentoHabitual, PorcentajeIVA, PorcentajeIIBB, PorcentajePercepcion
                     FROM PROVEEDORES
                     WHERE Activo = 1";
 
@@ -46,9 +46,13 @@ namespace Negocio
                         Localidad = datos.Lector["Localidad"] as string ?? "",
                         CondicionIVA = datos.Lector["CondicionIVA"] as string ?? "",
                         Activo = datos.Lector["Activo"] != DBNull.Value && (bool)datos.Lector["Activo"],
+                        VendeConIVA = datos.Lector["VendeConIVA"] != DBNull.Value && (bool)datos.Lector["VendeConIVA"],
 
-                        // Nuevo mapeo fundamental para el cálculo de precios
-                        VendeConIVA = (bool)datos.Lector["VendeConIVA"]
+                        // Nuevos campos impositivos
+                        DescuentoHabitual = datos.Lector["DescuentoHabitual"] != DBNull.Value ? (decimal)datos.Lector["DescuentoHabitual"] : 0,
+                        PorcentajeIVA = datos.Lector["PorcentajeIVA"] != DBNull.Value ? (decimal)datos.Lector["PorcentajeIVA"] : 0,
+                        PorcentajeIIBB = datos.Lector["PorcentajeIIBB"] != DBNull.Value ? (decimal)datos.Lector["PorcentajeIIBB"] : 0,
+                        PorcentajePercepcion = datos.Lector["PorcentajePercepcion"] != DBNull.Value ? (decimal)datos.Lector["PorcentajePercepcion"] : 0
                     };
 
                     lista.Add(p);
@@ -68,10 +72,10 @@ namespace Negocio
 
             try
             {
-                // Agregamos VendeConIVA al SELECT
                 datos.setearConsulta(@"
                     SELECT Id, Nombre, RazonSocial, Documento, Email, Telefono, 
-                           Direccion, Localidad, CondicionIVA, Activo, VendeConIVA
+                           Direccion, Localidad, CondicionIVA, Activo, VendeConIVA,
+                           DescuentoHabitual, PorcentajeIVA, PorcentajeIIBB, PorcentajePercepcion
                     FROM PROVEEDORES
                     WHERE Id = @id");
 
@@ -94,9 +98,12 @@ namespace Negocio
                         Localidad = datos.Lector["Localidad"] as string ?? "",
                         CondicionIVA = datos.Lector["CondicionIVA"] as string ?? "",
                         Activo = datos.Lector["Activo"] != DBNull.Value && (bool)datos.Lector["Activo"],
+                        VendeConIVA = datos.Lector["VendeConIVA"] != DBNull.Value && (bool)datos.Lector["VendeConIVA"],
 
-                        // Mapeo para que Producto.PrecioVenta sepa qué fórmula usar
-                        VendeConIVA = (bool)datos.Lector["VendeConIVA"]
+                        DescuentoHabitual = datos.Lector["DescuentoHabitual"] != DBNull.Value ? (decimal)datos.Lector["DescuentoHabitual"] : 0,
+                        PorcentajeIVA = datos.Lector["PorcentajeIVA"] != DBNull.Value ? (decimal)datos.Lector["PorcentajeIVA"] : 0,
+                        PorcentajeIIBB = datos.Lector["PorcentajeIIBB"] != DBNull.Value ? (decimal)datos.Lector["PorcentajeIIBB"] : 0,
+                        PorcentajePercepcion = datos.Lector["PorcentajePercepcion"] != DBNull.Value ? (decimal)datos.Lector["PorcentajePercepcion"] : 0
                     };
                 }
 
@@ -131,16 +138,16 @@ namespace Negocio
 
                 if (p.Id == 0)
                 {
-                    // Agregamos VendeConIVA al INSERT
                     datos.setearConsulta(@"
                 INSERT INTO PROVEEDORES
-                    (Nombre, RazonSocial, Documento, Email, Telefono, Direccion, Localidad, CondicionIVA, Activo, VendeConIVA)
+                    (Nombre, RazonSocial, Documento, Email, Telefono, Direccion, Localidad, CondicionIVA, Activo, VendeConIVA,
+                     DescuentoHabitual, PorcentajeIVA, PorcentajeIIBB, PorcentajePercepcion)
                 VALUES
-                    (@nom, @razon, @doc, @mail, @tel, @dir, @loc, @iva, 1, @vendeIva)");
+                    (@nom, @razon, @doc, @mail, @tel, @dir, @loc, @iva, 1, @vendeIva,
+                     @descHab, @porcIva, @porcIibb, @porcPerc)");
                 }
                 else
                 {
-                    // Agregamos VendeConIVA al UPDATE
                     datos.setearConsulta(@"
                 UPDATE PROVEEDORES SET
                     Nombre = @nom,
@@ -151,7 +158,11 @@ namespace Negocio
                     Direccion = @dir,
                     Localidad = @loc,
                     CondicionIVA = @iva,
-                    VendeConIVA = @vendeIva
+                    VendeConIVA = @vendeIva,
+                    DescuentoHabitual = @descHab,
+                    PorcentajeIVA = @porcIva,
+                    PorcentajeIIBB = @porcIibb,
+                    PorcentajePercepcion = @porcPerc
                 WHERE Id = @id");
 
                     datos.setearParametro("@id", p.Id);
@@ -165,9 +176,13 @@ namespace Negocio
                 datos.setearParametro("@dir", (object)p.Direccion ?? DBNull.Value);
                 datos.setearParametro("@loc", (object)p.Localidad ?? DBNull.Value);
                 datos.setearParametro("@iva", (object)p.CondicionIVA ?? DBNull.Value);
-
-                // Nuevo parámetro para persistir la condición fiscal
                 datos.setearParametro("@vendeIva", p.VendeConIVA);
+
+                // Parámetros impositivos
+                datos.setearParametro("@descHab", p.DescuentoHabitual);
+                datos.setearParametro("@porcIva", p.PorcentajeIVA);
+                datos.setearParametro("@porcIibb", p.PorcentajeIIBB);
+                datos.setearParametro("@porcPerc", p.PorcentajePercepcion);
 
                 datos.ejecutarAccion();
             }
@@ -176,6 +191,7 @@ namespace Negocio
                 datos.CerrarConexion();
             }
         }
+
         public List<dynamic> ObtenerReporteInflacionAnual()
         {
             var lista = new List<dynamic>();
@@ -221,6 +237,7 @@ namespace Negocio
             }
             finally { datos.CerrarConexion(); }
         }
+
         public void Eliminar(int id)
         {
             var datos = new AccesoDatos();
@@ -241,8 +258,10 @@ namespace Negocio
             var datos = new AccesoDatos();
             try
             {
-                // Agregamos VendeConIVA también aquí para consistencia
-                datos.setearConsulta("SELECT *, VendeConIVA FROM PROVEEDORES WHERE Documento = @cuit");
+                datos.setearConsulta(@"
+                    SELECT *, VendeConIVA, DescuentoHabitual, PorcentajeIVA, PorcentajeIIBB, PorcentajePercepcion 
+                    FROM PROVEEDORES 
+                    WHERE Documento = @cuit");
                 datos.setearParametro("@cuit", cuit);
                 datos.ejecutarLectura();
 
@@ -260,7 +279,12 @@ namespace Negocio
                         Localidad = datos.Lector["Localidad"].ToString(),
                         CondicionIVA = datos.Lector["CondicionIVA"].ToString(),
                         Activo = (bool)datos.Lector["Activo"],
-                        VendeConIVA = (bool)datos.Lector["VendeConIVA"]
+                        VendeConIVA = (bool)datos.Lector["VendeConIVA"],
+
+                        DescuentoHabitual = datos.Lector["DescuentoHabitual"] != DBNull.Value ? (decimal)datos.Lector["DescuentoHabitual"] : 0,
+                        PorcentajeIVA = datos.Lector["PorcentajeIVA"] != DBNull.Value ? (decimal)datos.Lector["PorcentajeIVA"] : 0,
+                        PorcentajeIIBB = datos.Lector["PorcentajeIIBB"] != DBNull.Value ? (decimal)datos.Lector["PorcentajeIIBB"] : 0,
+                        PorcentajePercepcion = datos.Lector["PorcentajePercepcion"] != DBNull.Value ? (decimal)datos.Lector["PorcentajePercepcion"] : 0
                     };
                 }
                 return null;

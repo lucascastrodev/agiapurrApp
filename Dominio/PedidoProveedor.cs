@@ -15,6 +15,14 @@ namespace Dominio
 
         public DateTime FechaEmision { get; set; }
 
+        public decimal SubtotalBruto { get; set; }
+        public decimal DescuentoPorcentaje { get; set; }
+        public decimal DescuentoMonto { get; set; }
+        public decimal SubtotalNeto { get; set; }
+        public decimal MontoIVA { get; set; }
+        public decimal MontoIIBB { get; set; }
+        public decimal MontoPercepcion { get; set; }
+
         public decimal TotalEstimado { get; set; }
 
         public string Estado { get; set; } // Pendiente, Recibido, Cancelado

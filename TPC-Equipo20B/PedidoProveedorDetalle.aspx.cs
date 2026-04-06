@@ -29,8 +29,9 @@ namespace TPC_Equipo20B
         {
             try
             {
-                // USAMOS UN MÉTODO DIFERENTE, CREADO ESPECÍFICAMENTE PARA ESTO
-                PedidoProveedor pedido = ObtenerDetalleCompletoPorId(idPedido);
+                // Ahora usamos el método oficial de Negocio, que ya trae todo el JOIN y la cascada
+                PedidoProveedorNegocio negocio = new PedidoProveedorNegocio();
+                PedidoProveedor pedido = negocio.ObtenerPorId(idPedido);
 
                 if (pedido != null)
                 {
@@ -42,7 +43,7 @@ namespace TPC_Equipo20B
                     if (pedido.Estado == "Recibido") lblEstado.CssClass = "badge bg-success bg-opacity-10 text-success border border-success";
                     else if (pedido.Estado == "Cancelado") lblEstado.CssClass = "badge bg-danger bg-opacity-10 text-danger border border-danger";
 
-                    // 2. Cargar Proveedor y Usuario (Ahora sí tienen nombre)
+                    // 2. Cargar Proveedor y Usuario
                     lblProveedorNombre.Text = pedido.Proveedor.Nombre;
                     lblUsuario.Text = pedido.Usuario.Nombre;
 
@@ -50,7 +51,41 @@ namespace TPC_Equipo20B
                     repDetalles.DataSource = pedido.Lineas;
                     repDetalles.DataBind();
 
-                    // 4. Cargar Total
+                    // 4. Cargar Cascada Matemática (Oculta los div si son 0)
+                    lblSubtotalBruto.Text = pedido.SubtotalBruto.ToString("C");
+
+                    if (pedido.DescuentoPorcentaje > 0 || pedido.DescuentoMonto > 0)
+                    {
+                        divDescuento.Visible = true;
+                        lblPorcDescuento.Text = pedido.DescuentoPorcentaje.ToString("0.##");
+                        lblDescuento.Text = "- " + pedido.DescuentoMonto.ToString("C");
+                    }
+                    else divDescuento.Visible = false;
+
+                    lblSubtotalNeto.Text = pedido.SubtotalNeto.ToString("C");
+
+                    if (pedido.MontoIVA > 0)
+                    {
+                        divIva.Visible = true;
+                        lblIva.Text = pedido.MontoIVA.ToString("C");
+                    }
+                    else divIva.Visible = false;
+
+                    if (pedido.MontoIIBB > 0)
+                    {
+                        divIibb.Visible = true;
+                        lblIibb.Text = pedido.MontoIIBB.ToString("C");
+                    }
+                    else divIibb.Visible = false;
+
+                    if (pedido.MontoPercepcion > 0)
+                    {
+                        divPercepcion.Visible = true;
+                        lblPercepcion.Text = pedido.MontoPercepcion.ToString("C");
+                    }
+                    else divPercepcion.Visible = false;
+
+                    // 5. Total Final
                     lblTotal.Text = pedido.TotalEstimado.ToString("C");
                 }
                 else
@@ -66,68 +101,13 @@ namespace TPC_Equipo20B
                 lblError.Visible = true;
                 pnlComprobante.Visible = false;
             }
+
         }
-
-        // --- MÉTODO DE NEGOCIO LOCAL (Para evitar tocar la clase Negocio y re-hacerlo acá) ---
-        private PedidoProveedor ObtenerDetalleCompletoPorId(int idPedido)
+        protected int CalcularPacks(object cantidad, object unidadesPorPack)
         {
-            PedidoProveedor pedido = new PedidoProveedor();
-            AccesoDatos datos = new AccesoDatos();
-            try
-            {
-                // ESTA CONSULTA SÍ TRAE EL NOMBRE DEL PROVEEDOR
-                datos.setearConsulta(@"
-                    SELECT P.Id, P.IdProveedor, PR.Nombre AS NombreProveedor, 
-                           P.IdUsuario, U.Nombre AS NombreUsuario, 
-                           P.FechaEmision, P.TotalEstimado, P.Estado 
-                    FROM PEDIDOS_PROVEEDOR P
-                    INNER JOIN PROVEEDORES PR ON P.IdProveedor = PR.Id
-                    INNER JOIN USUARIOS U ON P.IdUsuario = U.Id
-                    WHERE P.Id = @id");
-
-                datos.setearParametro("@id", idPedido);
-                datos.ejecutarLectura();
-
-                if (datos.Lector.Read())
-                {
-                    pedido.Id = (int)datos.Lector["Id"];
-                    pedido.Proveedor.Id = (int)datos.Lector["IdProveedor"];
-                    pedido.Proveedor.Nombre = (string)datos.Lector["NombreProveedor"]; // CARGAR EL NOMBRE
-                    pedido.Usuario.Id = (int)datos.Lector["IdUsuario"];
-                    pedido.Usuario.Nombre = (string)datos.Lector["NombreUsuario"]; // CARGAR EL NOMBRE DEL USUARIO
-                    pedido.FechaEmision = (DateTime)datos.Lector["FechaEmision"];
-                    pedido.TotalEstimado = (decimal)datos.Lector["TotalEstimado"];
-                    pedido.Estado = (string)datos.Lector["Estado"];
-                }
-                datos.CerrarConexion();
-
-                // Traemos el detalle
-                datos = new AccesoDatos();
-                datos.setearConsulta(@"
-                    SELECT D.Id, D.IdProductoProveedor, D.Cantidad, D.PrecioUnitario, D.Subtotal, 
-                           P.Codigo, P.Descripcion 
-                    FROM PEDIDOS_PROVEEDOR_DETALLE D
-                    INNER JOIN PRODUCTOS_PROVEEDOR P ON D.IdProductoProveedor = P.Id
-                    WHERE D.IdPedido = @idPed");
-
-                datos.setearParametro("@idPed", idPedido);
-                datos.ejecutarLectura();
-
-                while (datos.Lector.Read())
-                {
-                    PedidoProveedorLinea linea = new PedidoProveedorLinea();
-                    linea.Id = (int)datos.Lector["Id"];
-                    linea.Cantidad = (int)datos.Lector["Cantidad"];
-                    linea.PrecioUnitario = (decimal)datos.Lector["PrecioUnitario"];
-                    linea.Producto.Id = (int)datos.Lector["IdProductoProveedor"];
-                    linea.Producto.Codigo = (string)datos.Lector["Codigo"];
-                    linea.Producto.Descripcion = (string)datos.Lector["Descripcion"];
-
-                    pedido.Lineas.Add(linea);
-                }
-                return pedido;
-            }
-            finally { datos.CerrarConexion(); }
+            int cant = Convert.ToInt32(cantidad);
+            int un = Convert.ToInt32(unidadesPorPack);
+            return un > 0 ? cant / un : cant;
         }
     }
 }

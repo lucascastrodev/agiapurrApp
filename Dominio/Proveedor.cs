@@ -21,5 +21,10 @@ namespace Dominio
         public bool Activo { get; set; } = true;
         public bool VendeConIVA { get; set; }
 
+        public decimal DescuentoHabitual { get; set; }
+        public decimal PorcentajeIVA { get; set; }
+        public decimal PorcentajeIIBB { get; set; }
+        public decimal PorcentajePercepcion { get; set; }
+
     }
 }

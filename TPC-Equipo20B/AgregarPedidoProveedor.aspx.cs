@@ -25,7 +25,6 @@ namespace TPC_Equipo20B
             {
                 CargarProveedores();
 
-                // VERIFICAMOS SI ESTAMOS EN MODO EDICIÓN
                 if (Request.QueryString["id"] != null)
                 {
                     int idPedido = int.Parse(Request.QueryString["id"]);
@@ -33,7 +32,6 @@ namespace TPC_Equipo20B
                 }
                 else
                 {
-                    // MODO ALTA NUEVA
                     txtFecha.Text = DateTime.Now.ToString("yyyy-MM-dd");
                     Session["PedidoProvLineas"] = null;
                     ActualizarGrid();
@@ -48,21 +46,17 @@ namespace TPC_Equipo20B
 
             if (pedido != null)
             {
-                // 1. Cambiamos títulos visuales
                 lblTituloPagina.InnerText = "Editar Pedido #" + pedido.Id;
                 lblSubtituloPagina.InnerText = "Modifique las cantidades o productos de la orden.";
                 btnGuardarDefinitivo.Text = "Guardar Cambios";
 
-                // 2. Cargamos controles
                 txtFecha.Text = pedido.FechaEmision.ToString("yyyy-MM-dd");
 
                 ddlProveedor.SelectedValue = pedido.Proveedor.Id.ToString();
-                ddlProveedor.Enabled = false; // Bloqueamos el proveedor para no romper los SKUs
+                ddlProveedor.Enabled = false;
 
-                // Cargamos los productos de ese proveedor en el segundo combo
                 CargarProductosDelProveedor(pedido.Proveedor.Id);
 
-                // 3. Cargamos el carrito en memoria
                 Lineas = pedido.Lineas;
                 ActualizarGrid();
             }
@@ -88,28 +82,27 @@ namespace TPC_Equipo20B
                 ddlProducto.Items.Clear();
                 ddlProducto.Items.Insert(0, new ListItem("-- Seleccione un proveedor primero --", "0"));
                 txtPrecio.Text = "";
+                lblLabelCantidad.Text = "Cantidad";
                 return;
             }
 
             CargarProductosDelProveedor(idProveedor);
+            // Al cambiar el proveedor, recalculamos los impuestos si es que hay algo en la grilla
+            ActualizarGrid();
         }
 
         private void CargarProductosDelProveedor(int idProveedor)
         {
             ProductoProveedorNegocio prodProvNeg = new ProductoProveedorNegocio();
-
-            // Suponiendo que tenés un método ListarPorProveedor en ProductoProveedorNegocio
             var productos = prodProvNeg.ListarPorProveedor(idProveedor);
 
             ddlProducto.DataSource = productos;
-            // Mostramos Código y Descripción juntos para que sea más fácil elegir
             ddlProducto.DataTextField = "Descripcion";
             ddlProducto.DataValueField = "Id";
             ddlProducto.DataBind();
 
             ddlProducto.Items.Insert(0, new ListItem("-- Seleccione el producto --", "0"));
 
-            // Si hay productos, los formateamos un poco (Opcional, depende de cómo los traigas)
             foreach (ListItem item in ddlProducto.Items)
             {
                 if (item.Value != "0")
@@ -120,6 +113,7 @@ namespace TPC_Equipo20B
             }
 
             txtPrecio.Text = "";
+            lblLabelCantidad.Text = "Cantidad";
         }
 
         protected void ddlProducto_SelectedIndexChanged(object sender, EventArgs e)
@@ -127,18 +121,27 @@ namespace TPC_Equipo20B
             if (ddlProducto.SelectedValue == "0")
             {
                 txtPrecio.Text = "";
+                lblLabelCantidad.Text = "Cantidad";
                 return;
             }
 
             int idProductoProv = int.Parse(ddlProducto.SelectedValue);
-
             ProductoProveedorNegocio negocio = new ProductoProveedorNegocio();
             ProductoProveedor prod = negocio.ObtenerPorId(idProductoProv);
 
             if (prod != null)
             {
-                // Mostramos el precio unitario del catálogo del proveedor
                 txtPrecio.Text = prod.PrecioUnitario.ToString("0.00");
+
+                // MAGIA 1: Si se vende por bulto, le avisamos visualmente al usuario
+                if (prod.UnidadesPorPack > 1)
+                {
+                    lblLabelCantidad.Text = $"Cant. de Packs ({prod.UnidadesPorPack} un. c/u)";
+                }
+                else
+                {
+                    lblLabelCantidad.Text = "Cantidad (Unidades)";
+                }
             }
         }
 
@@ -146,31 +149,30 @@ namespace TPC_Equipo20B
         {
             if (ddlProducto.SelectedValue == "0" || string.IsNullOrEmpty(txtCantidad.Text)) return;
 
-            // Bloquear el combo de Proveedor para que no lo cambien a mitad del pedido
             ddlProveedor.Enabled = false;
 
             int idProductoProv = int.Parse(ddlProducto.SelectedValue);
-            int cantidad = int.Parse(txtCantidad.Text);
+            int cantidadIngresada = int.Parse(txtCantidad.Text);
 
             ProductoProveedorNegocio prodNeg = new ProductoProveedorNegocio();
             ProductoProveedor producto = prodNeg.ObtenerPorId(idProductoProv);
 
             if (producto != null)
             {
-                // Crear nueva línea
+                // MAGIA 2: Si ingresó 20 packs, y el pack trae 10, lo guardamos como 200 unidades (la matemática del Excel es por unidad)
+                int cantidadRealUnidades = cantidadIngresada * (producto.UnidadesPorPack > 0 ? producto.UnidadesPorPack : 1);
+
                 PedidoProveedorLinea nuevaLinea = new PedidoProveedorLinea
                 {
                     Producto = producto,
-                    Cantidad = cantidad,
+                    Cantidad = cantidadRealUnidades,
                     PrecioUnitario = producto.PrecioUnitario
-                    // El Subtotal se calcula solo gracias a la propiedad en la clase de Dominio
                 };
 
-                // Verificar si ya existe el producto en el carrito y sumar cantidad (opcional)
                 var lineaExistente = Lineas.FirstOrDefault(l => l.Producto.Id == producto.Id);
                 if (lineaExistente != null)
                 {
-                    lineaExistente.Cantidad += cantidad;
+                    lineaExistente.Cantidad += cantidadRealUnidades;
                 }
                 else
                 {
@@ -180,10 +182,10 @@ namespace TPC_Equipo20B
                 ActualizarGrid();
             }
 
-            // Resetear campos para cargar el siguiente más rápido
             ddlProducto.SelectedIndex = 0;
             txtCantidad.Text = "";
             txtPrecio.Text = "";
+            lblLabelCantidad.Text = "Cantidad";
             lblMensajeFooter.Visible = false;
         }
 
@@ -196,7 +198,6 @@ namespace TPC_Equipo20B
                 Lineas.RemoveAt(index);
                 ActualizarGrid();
 
-                // Liberar proveedor si se vacía la lista por completo
                 if (Lineas.Count == 0)
                 {
                     ddlProveedor.Enabled = true;
@@ -204,18 +205,69 @@ namespace TPC_Equipo20B
             }
         }
 
+        // MAGIA 3: La cascada matemática completa (Igualita a la del Excel)
         private void ActualizarGrid()
         {
             gvLineas.DataSource = Lineas;
             gvLineas.DataBind();
 
-            if (Lineas.Count > 0)
+            if (Lineas.Count > 0 && ddlProveedor.SelectedValue != "0")
             {
-                decimal total = Lineas.Sum(l => l.Subtotal);
+                int idProv = int.Parse(ddlProveedor.SelectedValue);
+                ProveedorNegocio provNeg = new ProveedorNegocio();
+                Proveedor prov = provNeg.ObtenerPorId(idProv);
+
+                // 1. Subtotal Bruto
+                decimal subBruto = Lineas.Sum(l => l.Subtotal);
+                lblSubtotalBruto.Text = subBruto.ToString("C");
+
+                // 2. Descuento
+                decimal descPorc = prov != null ? prov.DescuentoHabitual : 0;
+                decimal descMonto = subBruto * (descPorc / 100);
+                lblPorcDescuento.Text = descPorc.ToString("0.##");
+                lblDescuento.Text = "- " + descMonto.ToString("C");
+                divDescuento.Visible = descPorc > 0;
+
+                // 3. Neto
+                decimal subNeto = subBruto - descMonto;
+                lblSubtotalNeto.Text = subNeto.ToString("C");
+
+                // 4. Impuestos (Sobre el Neto)
+                decimal ivaPorc = prov != null ? prov.PorcentajeIVA : 0;
+                decimal montoIva = subNeto * (ivaPorc / 100);
+                lblPorcIva.Text = ivaPorc.ToString("0.##");
+                lblIva.Text = montoIva.ToString("C");
+                divIva.Visible = ivaPorc > 0;
+
+                decimal iibbPorc = prov != null ? prov.PorcentajeIIBB : 0;
+                decimal montoIibb = subNeto * (iibbPorc / 100);
+                lblPorcIibb.Text = iibbPorc.ToString("0.##");
+                lblIibb.Text = montoIibb.ToString("C");
+                divIibb.Visible = iibbPorc > 0;
+
+                decimal percPorc = prov != null ? prov.PorcentajePercepcion : 0;
+                decimal montoPerc = subNeto * (percPorc / 100);
+                lblPorcPercepcion.Text = percPorc.ToString("0.##");
+                lblPercepcion.Text = montoPerc.ToString("C");
+                divPercepcion.Visible = percPorc > 0;
+
+                // 5. Total a Pagar
+                decimal total = subNeto + montoIva + montoIibb + montoPerc;
                 lblTotal.Text = total.ToString("C");
             }
             else
             {
+                // Limpiar todo si se vació el carrito
+                lblSubtotalBruto.Text = "$ 0,00";
+                lblDescuento.Text = "- $ 0,00";
+                divDescuento.Visible = false;
+                lblSubtotalNeto.Text = "$ 0,00";
+                lblIva.Text = "$ 0,00";
+                divIva.Visible = false;
+                lblIibb.Text = "$ 0,00";
+                divIibb.Visible = false;
+                lblPercepcion.Text = "$ 0,00";
+                divPercepcion.Visible = false;
                 lblTotal.Text = "$ 0,00";
             }
         }
@@ -229,18 +281,39 @@ namespace TPC_Equipo20B
                 if (ddlProveedor.SelectedValue == "0") return;
                 if (Lineas.Count == 0) return;
 
+                // Calculamos todo de nuevo al guardar para evitar alteraciones visuales maliciosas en el HTML
+                ProveedorNegocio provNeg = new ProveedorNegocio();
+                Proveedor prov = provNeg.ObtenerPorId(int.Parse(ddlProveedor.SelectedValue));
+
+                decimal subBruto = Lineas.Sum(l => l.Subtotal);
+                decimal descPorc = prov.DescuentoHabitual;
+                decimal descMonto = subBruto * (descPorc / 100);
+                decimal subNeto = subBruto - descMonto;
+                decimal montoIva = subNeto * (prov.PorcentajeIVA / 100);
+                decimal montoIibb = subNeto * (prov.PorcentajeIIBB / 100);
+                decimal montoPerc = subNeto * (prov.PorcentajePercepcion / 100);
+                decimal total = subNeto + montoIva + montoIibb + montoPerc;
+
                 PedidoProveedor pedido = new PedidoProveedor
                 {
-                    Proveedor = new Proveedor { Id = int.Parse(ddlProveedor.SelectedValue) },
+                    Proveedor = prov,
                     FechaEmision = DateTime.Parse(txtFecha.Text),
                     Usuario = (Usuario)Session["Usuario"],
                     Lineas = Lineas,
-                    TotalEstimado = Lineas.Sum(l => l.Subtotal)
+
+                    // Guardamos la foto completa
+                    SubtotalBruto = subBruto,
+                    DescuentoPorcentaje = descPorc,
+                    DescuentoMonto = descMonto,
+                    SubtotalNeto = subNeto,
+                    MontoIVA = montoIva,
+                    MontoIIBB = montoIibb,
+                    MontoPercepcion = montoPerc,
+                    TotalEstimado = total
                 };
 
                 PedidoProveedorNegocio negocio = new PedidoProveedorNegocio();
 
-                // SI HAY UN ID EN LA URL, ACTUALIZAMOS. SINO, CREAMOS UNO NUEVO.
                 if (Request.QueryString["id"] != null)
                 {
                     pedido.Id = int.Parse(Request.QueryString["id"]);
@@ -263,7 +336,6 @@ namespace TPC_Equipo20B
 
         protected void btnConfirmarCancelar_Click(object sender, EventArgs e)
         {
-            // Limpiar carrito y salir
             Session["PedidoProvLineas"] = null;
             Response.Redirect("PedidosProveedores.aspx", false);
         }

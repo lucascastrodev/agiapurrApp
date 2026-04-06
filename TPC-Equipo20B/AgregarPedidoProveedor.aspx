@@ -5,25 +5,102 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
 
     <style>
-        .validator { color: #dc3545; font-size: 0.85em; display: block; margin-top: 0.3rem; font-weight: 500; }
-        .error-flotante { position: absolute; font-size: 0.80em; margin-top: 2px; color: #dc3545; font-weight: 500; }
-        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; user-select: none; font-size: 20px; }
-        .form-label { font-weight: 600; color: #495057; margin-bottom: 0.3rem; }
-        
-        /* --- TEMA PROVEEDORES (ÍNDIGO/VIOLETA) --- */
-        .form-control:focus, .form-select:focus { border-color: #6610f2; box-shadow: 0 0 0 0.25rem rgba(102, 16, 242, 0.25); }
-        .btn-proveedor-custom { background-color: #6610f2; border-color: #6610f2; color: #ffffff; font-weight: 700; }
-        .btn-proveedor-custom:hover { background-color: #520dc2; border-color: #520dc2; color: #ffffff; }
-        .text-proveedor { color: #6610f2 !important; }
-        .border-proveedor { border-color: #6610f2 !important; }
+        .validator {
+            color: #dc3545;
+            font-size: 0.85em;
+            display: block;
+            margin-top: 0.3rem;
+            font-weight: 500;
+        }
 
-        .sin-flechas::-webkit-outer-spin-button, .sin-flechas::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-        .grid-container { border: 1px solid #e9ecef; border-radius: 12px; background-color: #fff; max-height: 380px; overflow-y: auto; }
-        .table thead th { position: sticky; top: 0; background-color: #f8f9fa !important; z-index: 10; box-shadow: 0 1px 0 #dee2e6; font-weight: 600; color: #495057; text-transform: uppercase; font-size: 0.85rem; padding-top: 12px; padding-bottom: 12px; }
-        .table td { vertical-align: middle; color: #212529; }
-        
-        input[type="date"]::-webkit-calendar-picker-indicator { cursor: pointer; opacity: 0.6; transition: 0.2s; }
-        input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
+        .error-flotante {
+            position: absolute;
+            font-size: 0.80em;
+            margin-top: 2px;
+            color: #dc3545;
+            font-weight: 500;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            user-select: none;
+            font-size: 20px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 0.3rem;
+        }
+
+        /* --- TEMA PROVEEDORES (ÍNDIGO/VIOLETA) --- */
+        .form-control:focus, .form-select:focus {
+            border-color: #6610f2;
+            box-shadow: 0 0 0 0.25rem rgba(102, 16, 242, 0.25);
+        }
+
+        .btn-proveedor-custom {
+            background-color: #6610f2;
+            border-color: #6610f2;
+            color: #ffffff;
+            font-weight: 700;
+        }
+
+            .btn-proveedor-custom:hover {
+                background-color: #520dc2;
+                border-color: #520dc2;
+                color: #ffffff;
+            }
+
+        .text-proveedor {
+            color: #6610f2 !important;
+        }
+
+        .border-proveedor {
+            border-color: #6610f2 !important;
+        }
+
+        .sin-flechas::-webkit-outer-spin-button, .sin-flechas::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .grid-container {
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            background-color: #fff;
+            max-height: 380px;
+            overflow-y: auto;
+        }
+
+        .table thead th {
+            position: sticky;
+            top: 0;
+            background-color: #f8f9fa !important;
+            z-index: 10;
+            box-shadow: 0 1px 0 #dee2e6;
+            font-weight: 600;
+            color: #495057;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            padding-top: 12px;
+            padding-bottom: 12px;
+        }
+
+        .table td {
+            vertical-align: middle;
+            color: #212529;
+        }
+
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            cursor: pointer;
+            opacity: 0.6;
+            transition: 0.2s;
+        }
+
+            input[type="date"]::-webkit-calendar-picker-indicator:hover {
+                opacity: 1;
+            }
     </style>
 
     <div class="container-fluid py-4 max-w-1200" style="max-width: 1400px;">
@@ -86,7 +163,7 @@
 
                         <div class="row g-3 mb-4">
                             <div class="col-6 position-relative">
-                                <label for="txtCantidad" class="form-label">Cantidad</label>
+                                <asp:Label ID="lblLabelCantidad" runat="server" AssociatedControlID="txtCantidad" CssClass="form-label">Cantidad</asp:Label>
                                 <div class="input-group input-group-lg">
                                     <span class="input-group-text bg-light border-end-0"><span class="material-symbols-outlined text-muted">tag</span></span>
                                     <asp:TextBox ID="txtCantidad" runat="server" CssClass="form-control sin-flechas text-center border-start-0 fw-bold fs-6" TextMode="Number" min="1" step="1" placeholder="0" />
@@ -98,7 +175,7 @@
                             </div>
 
                             <div class="col-6 position-relative">
-                                <label for="txtPrecio" class="form-label">Costo Estimado</label>
+                                <label for="txtPrecio" class="form-label">Costo Unitario</label>
                                 <div class="input-group input-group-lg">
                                     <span class="input-group-text bg-light border-end-0"><span class="material-symbols-outlined text-muted">attach_money</span></span>
                                     <asp:TextBox ID="txtPrecio" runat="server" CssClass="form-control bg-light text-center border-start-0 text-muted fs-6" ReadOnly="true" placeholder="0,00" />
@@ -128,7 +205,7 @@
                                     <Columns>
                                         <asp:BoundField DataField="Producto.Codigo" HeaderText="SKU" ItemStyle-CssClass="text-start ps-3 fw-bold text-muted small" HeaderStyle-CssClass="text-start ps-3" />
                                         <asp:BoundField DataField="Producto.Descripcion" HeaderText="Descripción Prov." ItemStyle-CssClass="text-start fw-medium text-dark" HeaderStyle-CssClass="text-start" />
-                                        <asp:BoundField DataField="Cantidad" HeaderText="Cant." ItemStyle-CssClass="fw-bold text-secondary" />
+                                        <asp:BoundField DataField="Cantidad" HeaderText="Unidades" ItemStyle-CssClass="fw-bold text-secondary" />
 
                                         <asp:BoundField DataField="PrecioUnitario" HeaderText="Costo Unit." DataFormatString="{0:C}" ItemStyle-CssClass="text-muted small text-nowrap" />
                                         <asp:BoundField DataField="Subtotal" HeaderText="Subtotal" DataFormatString="{0:C}" ItemStyle-CssClass="fw-bold text-dark text-nowrap" />
@@ -154,9 +231,45 @@
                                 </asp:GridView>
                             </div>
 
-                            <div class="mt-4 p-3 bg-white rounded-3 border d-flex justify-content-between align-items-center shadow-sm border-start border-proveedor border-5">
-                                <h4 class="mb-0 text-muted fs-5 fw-bold text-uppercase ps-2">Inversión Estimada</h4>
-                                <asp:Label ID="lblTotal" runat="server" CssClass="fw-bold text-proveedor fs-2 m-0 text-nowrap" Text="$ 0,00"></asp:Label>
+                            <div class="mt-4 p-3 bg-white rounded-3 border shadow-sm border-start border-proveedor border-5">
+                                <div class="row text-end gx-3 gy-2" style="max-width: 400px; margin-left: auto;">
+
+                                    <div class="col-12 d-flex justify-content-between align-items-center">
+                                        <span class="text-muted fw-medium">Subtotal Bruto:</span>
+                                        <asp:Label ID="lblSubtotalBruto" runat="server" CssClass="fw-bold text-dark fs-6">$ 0,00</asp:Label>
+                                    </div>
+
+                                    <div class="col-12 d-flex justify-content-between align-items-center text-danger" id="divDescuento" runat="server">
+                                        <span class="fw-medium">Descuento (<asp:Label ID="lblPorcDescuento" runat="server">0</asp:Label>%):</span>
+                                        <asp:Label ID="lblDescuento" runat="server" CssClass="fw-bold fs-6">- $ 0,00</asp:Label>
+                                    </div>
+
+                                    <div class="col-12 d-flex justify-content-between align-items-center border-top pt-2">
+                                        <span class="text-muted fw-bold">Neto Gravado:</span>
+                                        <asp:Label ID="lblSubtotalNeto" runat="server" CssClass="fw-bold text-dark fs-6">$ 0,00</asp:Label>
+                                    </div>
+
+                                    <div class="col-12 d-flex justify-content-between align-items-center" id="divIva" runat="server">
+                                        <span class="text-muted fw-medium">IVA (<asp:Label ID="lblPorcIva" runat="server">0</asp:Label>%):</span>
+                                        <asp:Label ID="lblIva" runat="server" CssClass="fw-bold text-secondary fs-6">$ 0,00</asp:Label>
+                                    </div>
+
+                                    <div class="col-12 d-flex justify-content-between align-items-center" id="divIibb" runat="server">
+                                        <span class="text-muted fw-medium">Ingresos Brutos (<asp:Label ID="lblPorcIibb" runat="server">0</asp:Label>%):</span>
+                                        <asp:Label ID="lblIibb" runat="server" CssClass="fw-bold text-secondary fs-6">$ 0,00</asp:Label>
+                                    </div>
+
+                                    <div class="col-12 d-flex justify-content-between align-items-center" id="divPercepcion" runat="server">
+                                        <span class="text-muted fw-medium">Percepción (<asp:Label ID="lblPorcPercepcion" runat="server">0</asp:Label>%):</span>
+                                        <asp:Label ID="lblPercepcion" runat="server" CssClass="fw-bold text-secondary fs-6">$ 0,00</asp:Label>
+                                    </div>
+
+                                    <div class="col-12 d-flex justify-content-between align-items-center border-top pt-3 mt-2">
+                                        <h4 class="mb-0 text-muted fs-5 fw-bold text-uppercase">Total:</h4>
+                                        <asp:Label ID="lblTotal" runat="server" CssClass="fw-bold text-proveedor fs-2 m-0 text-nowrap">$ 0,00</asp:Label>
+                                    </div>
+
+                                </div>
                             </div>
 
                         </div>
