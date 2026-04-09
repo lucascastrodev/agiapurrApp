@@ -34,7 +34,6 @@ namespace Dominio
             {
                 if (Proveedor == null) return 0;
 
-                // X = Precio Neto (Costo)
                 decimal neto = PrecioNeto > 0
                                ? PrecioNeto
                                : (PreciosCompra != null && PreciosCompra.Count > 0
@@ -47,20 +46,21 @@ namespace Dominio
 
                 if (Proveedor.VendeConIVA)
                 {
-                    // Fórmula Excel: =SUMA(X7:Y7) (Es decir, Neto + 21% IVA)
-                    mayoristaExacto = neto * 1.21m;
+                    // --- CAMBIO DINÁMICO ---
+                    // Antes usábamos 1.21m fijo. 
+                    // Ahora usamos el PorcentajeIVA que cargaste en el ABM de Proveedores.
+                    // Si el IVA es 21, esto hace: neto * (1 + 0.21) = neto * 1.21
+                    decimal factorIVA = 1 + (Proveedor.PorcentajeIVA / 100m);
+                    mayoristaExacto = neto * factorIVA;
                 }
                 else
                 {
-                    // Fórmula Excel: =X16 / (1 - % Editable)
                     decimal porcentajeEditable = PorcentajeGanancia / 100m;
                     if (porcentajeEditable >= 1m) porcentajeEditable = 0.99m;
 
                     mayoristaExacto = neto / (1m - porcentajeEditable);
                 }
 
-                // Redondeo SIEMPRE para arriba al múltiplo de 100 más cercano
-                // Ej: 10472.64 -> 10500
                 return Math.Ceiling(mayoristaExacto / 100m) * 100m;
             }
         }

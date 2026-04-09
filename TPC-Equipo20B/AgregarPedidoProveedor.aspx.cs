@@ -159,7 +159,19 @@ namespace TPC_Equipo20B
 
             if (producto != null)
             {
-                // MAGIA 2: Si ingresó 20 packs, y el pack trae 10, lo guardamos como 200 unidades (la matemática del Excel es por unidad)
+                // Si el carrito ya tiene cosas, revisamos que el nuevo producto tenga la misma regla de descuento que el resto
+                if (Lineas.Count > 0)
+                {
+                    decimal descuentoActualDelCarrito = Lineas.First().Producto.PorcentajeDescuento;
+
+                    if (producto.PorcentajeDescuento != descuentoActualDelCarrito)
+                    {
+                        lblMensajeFooter.Text = "No se pueden mezclar productos de distintas familias (Ej: Yerbas con resto del catálogo) en el mismo pedido.";
+                        lblMensajeFooter.Visible = true;
+                        return; // Frenamos la ejecución, no lo dejamos agregar
+                    }
+                }
+
                 int cantidadRealUnidades = cantidadIngresada * (producto.UnidadesPorPack > 0 ? producto.UnidadesPorPack : 1);
 
                 PedidoProveedorLinea nuevaLinea = new PedidoProveedorLinea
@@ -186,7 +198,7 @@ namespace TPC_Equipo20B
             txtCantidad.Text = "";
             txtPrecio.Text = "";
             lblLabelCantidad.Text = "Cantidad";
-            lblMensajeFooter.Visible = false;
+            lblMensajeFooter.Visible = false; // Limpiamos el error si todo salió bien
         }
 
         protected void gvLineas_RowCommand(object sender, GridViewCommandEventArgs e)
@@ -204,8 +216,6 @@ namespace TPC_Equipo20B
                 }
             }
         }
-
-        // MAGIA 3: La cascada matemática completa (Igualita a la del Excel)
         private void ActualizarGrid()
         {
             gvLineas.DataSource = Lineas;
@@ -221,9 +231,10 @@ namespace TPC_Equipo20B
                 decimal subBruto = Lineas.Sum(l => l.Subtotal);
                 lblSubtotalBruto.Text = subBruto.ToString("C");
 
-                // 2. Descuento
-                decimal descPorc = prov != null ? prov.DescuentoHabitual : 0;
+                // 2. Descuento (AHORA ES DINÁMICO SEGÚN EL PRODUCTO)
+                decimal descPorc = Lineas.First().Producto.PorcentajeDescuento;
                 decimal descMonto = subBruto * (descPorc / 100);
+
                 lblPorcDescuento.Text = descPorc.ToString("0.##");
                 lblDescuento.Text = "- " + descMonto.ToString("C");
                 divDescuento.Visible = descPorc > 0;
@@ -257,7 +268,6 @@ namespace TPC_Equipo20B
             }
             else
             {
-                // Limpiar todo si se vació el carrito
                 lblSubtotalBruto.Text = "$ 0,00";
                 lblDescuento.Text = "- $ 0,00";
                 divDescuento.Visible = false;
@@ -281,12 +291,14 @@ namespace TPC_Equipo20B
                 if (ddlProveedor.SelectedValue == "0") return;
                 if (Lineas.Count == 0) return;
 
-                // Calculamos todo de nuevo al guardar para evitar alteraciones visuales maliciosas en el HTML
                 ProveedorNegocio provNeg = new ProveedorNegocio();
                 Proveedor prov = provNeg.ObtenerPorId(int.Parse(ddlProveedor.SelectedValue));
 
                 decimal subBruto = Lineas.Sum(l => l.Subtotal);
-                decimal descPorc = prov.DescuentoHabitual;
+
+                // Mismo cálculo al guardar: tomamos la regla del producto, no del proveedor
+                decimal descPorc = Lineas.First().Producto.PorcentajeDescuento;
+
                 decimal descMonto = subBruto * (descPorc / 100);
                 decimal subNeto = subBruto - descMonto;
                 decimal montoIva = subNeto * (prov.PorcentajeIVA / 100);
@@ -301,7 +313,6 @@ namespace TPC_Equipo20B
                     Usuario = (Usuario)Session["Usuario"],
                     Lineas = Lineas,
 
-                    // Guardamos la foto completa
                     SubtotalBruto = subBruto,
                     DescuentoPorcentaje = descPorc,
                     DescuentoMonto = descMonto,

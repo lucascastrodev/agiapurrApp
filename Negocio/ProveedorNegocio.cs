@@ -258,8 +258,11 @@ namespace Negocio
             var datos = new AccesoDatos();
             try
             {
+                // Limpiamos el query para evitar el SELECT * mezclado con columnas sueltas
                 datos.setearConsulta(@"
-                    SELECT *, VendeConIVA, DescuentoHabitual, PorcentajeIVA, PorcentajeIIBB, PorcentajePercepcion 
+                    SELECT Id, Nombre, RazonSocial, Documento, Email, Telefono, 
+                           Direccion, Localidad, CondicionIVA, Activo, VendeConIVA,
+                           DescuentoHabitual, PorcentajeIVA, PorcentajeIIBB, PorcentajePercepcion 
                     FROM PROVEEDORES 
                     WHERE Documento = @cuit");
                 datos.setearParametro("@cuit", cuit);

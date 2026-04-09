@@ -73,7 +73,7 @@ namespace Negocio
                     ORDER BY p1.Fecha DESC
                 ) AS UP
                 OUTER APPLY (
-                    SELECT TOP 1 PR.Id AS IdProv, PR.Nombre AS NombreProv, PR.VendeConIVA
+                    SELECT TOP 1 PR.Id AS IdProv, PR.Nombre AS NombreProv, PR.VendeConIVA, PR.PorcentajeIVA
                     FROM PRODUCTO_PROVEEDOR PP
                     INNER JOIN PROVEEDORES PR ON PR.Id = PP.IdProveedor
                     WHERE PP.IdProducto = P.Id
@@ -130,7 +130,8 @@ namespace Negocio
                         {
                             Id = (int)datos.Lector["IdProv"],
                             Nombre = (string)datos.Lector["NombreProv"],
-                            VendeConIVA = (bool)datos.Lector["VendeConIVA"]
+                            VendeConIVA = (bool)datos.Lector["VendeConIVA"],
+                            PorcentajeIVA = datos.Lector["PorcentajeIVA"] != DBNull.Value ? (decimal)datos.Lector["PorcentajeIVA"] : 0
                         }
                     };
 
@@ -185,7 +186,7 @@ namespace Negocio
                     SELECT TOP 1 Precio, Fecha FROM PRECIOS_COMPRA PC WHERE PC.IdProducto = P.Id ORDER BY PC.Fecha DESC
                 ) AS UP
                 OUTER APPLY (
-                    SELECT TOP 1 PR.Id AS IdProv, PR.Nombre AS NombreProv, PR.VendeConIVA
+                    SELECT TOP 1 PR.Id AS IdProv, PR.Nombre AS NombreProv, PR.VendeConIVA, PR.PorcentajeIVA
                     FROM PRODUCTO_PROVEEDOR PP
                     INNER JOIN PROVEEDORES PR ON PR.Id = PP.IdProveedor
                     WHERE PP.IdProducto = P.Id
@@ -214,7 +215,8 @@ namespace Negocio
                         {
                             Id = (int)datos.Lector["IdProv"],
                             Nombre = (string)datos.Lector["NombreProv"],
-                            VendeConIVA = (bool)datos.Lector["VendeConIVA"]
+                            VendeConIVA = (bool)datos.Lector["VendeConIVA"],
+                            PorcentajeIVA = datos.Lector["PorcentajeIVA"] != DBNull.Value ? (decimal)datos.Lector["PorcentajeIVA"] : 0
                         }
                     };
 

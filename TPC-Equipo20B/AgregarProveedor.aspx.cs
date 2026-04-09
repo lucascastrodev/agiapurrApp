@@ -35,6 +35,12 @@ namespace TPC_Equipo20B
                         txtDireccion.Text = p.Direccion;
                         txtLocalidad.Text = p.Localidad;
                         ddlFacturaIVA.SelectedValue = p.VendeConIVA ? "true" : "false";
+
+                        // CARGAMOS LOS IMPUESTOS AL EDITAR
+                        txtDescuento.Text = p.DescuentoHabitual.ToString("0.00");
+                        txtIVA.Text = p.PorcentajeIVA.ToString("0.00");
+                        txtIIBB.Text = p.PorcentajeIIBB.ToString("0.00");
+                        txtPercepcion.Text = p.PorcentajePercepcion.ToString("0.00");
                     }
                 }
             }
@@ -68,7 +74,13 @@ namespace TPC_Equipo20B
                     Direccion = txtDireccion.Text.Trim(),
                     Localidad = txtLocalidad.Text.Trim(),
                     CondicionIVA = ddlFacturaIVA.SelectedItem.Text,
-                    VendeConIVA = bool.Parse(ddlFacturaIVA.SelectedValue)
+                    VendeConIVA = bool.Parse(ddlFacturaIVA.SelectedValue),
+
+                    // Normalizamos puntos por comas para evitar errores de parseo regional
+                    DescuentoHabitual = decimal.Parse(txtDescuento.Text.Replace(".", ",")),
+                    PorcentajeIVA = decimal.Parse(txtIVA.Text.Replace(".", ",")),
+                    PorcentajeIIBB = decimal.Parse(txtIIBB.Text.Replace(".", ",")),
+                    PorcentajePercepcion = decimal.Parse(txtPercepcion.Text.Replace(".", ","))
                 };
 
                 _negocio.Guardar(p);

@@ -34,8 +34,7 @@ namespace Dominio
         public decimal MontoIVA { get; set; }
         public decimal MontoIIBB { get; set; }
         public decimal MontoPercepcion { get; set; }
-
-        // Recordá que ya tenías la propiedad TotalEstimado
+        public decimal PorcentajeDescuento { get; set; }
 
         // Constructor para inicializar los objetos anidados y evitar NullReferenceExceptions
         public ProductoProveedor()

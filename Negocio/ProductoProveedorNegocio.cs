@@ -13,9 +13,8 @@ namespace Negocio
 
             try
             {
-                datos.setearConsulta("SELECT Id, IdProveedor, Codigo, Descripcion, IdMarca, PrecioUnitario, Estado, UnidadesPorPack FROM PRODUCTOS_PROVEEDOR WHERE IdProveedor = @idProv AND Estado = 1");
+                datos.setearConsulta("SELECT Id, IdProveedor, Codigo, Descripcion, IdMarca, PrecioUnitario, Estado, UnidadesPorPack, PorcentajeDescuento FROM PRODUCTOS_PROVEEDOR WHERE IdProveedor = @idProv AND Estado = 1");
                 datos.setearParametro("@idProv", idProveedor);
-
                 datos.ejecutarLectura();
 
                 while (datos.Lector.Read())
@@ -26,9 +25,8 @@ namespace Negocio
                     aux.Descripcion = (string)datos.Lector["Descripcion"];
                     aux.PrecioUnitario = (decimal)datos.Lector["PrecioUnitario"];
                     aux.Estado = (bool)datos.Lector["Estado"];
-
-                    // Nueva lectura para los bultos
                     aux.UnidadesPorPack = datos.Lector["UnidadesPorPack"] != DBNull.Value ? (int)datos.Lector["UnidadesPorPack"] : 1;
+                    aux.PorcentajeDescuento = datos.Lector["PorcentajeDescuento"] != DBNull.Value ? (decimal)datos.Lector["PorcentajeDescuento"] : 0;
 
                     aux.Proveedor = new Proveedor();
                     aux.Proveedor.Id = (int)datos.Lector["IdProveedor"];
@@ -58,9 +56,9 @@ namespace Negocio
             AccesoDatos datos = new AccesoDatos();
             try
             {
-                datos.setearConsulta("SELECT Id, IdProveedor, Codigo, Descripcion, IdMarca, PrecioUnitario, Estado, UnidadesPorPack FROM PRODUCTOS_PROVEEDOR WHERE Id = @id");
-                datos.setearParametro("@id", id);
 
+                datos.setearConsulta("SELECT Id, IdProveedor, Codigo, Descripcion, IdMarca, PrecioUnitario, Estado, UnidadesPorPack, PorcentajeDescuento FROM PRODUCTOS_PROVEEDOR WHERE Id = @id");
+                datos.setearParametro("@id", id);
                 datos.ejecutarLectura();
 
                 if (datos.Lector.Read())
@@ -71,9 +69,10 @@ namespace Negocio
                     aux.Descripcion = (string)datos.Lector["Descripcion"];
                     aux.PrecioUnitario = (decimal)datos.Lector["PrecioUnitario"];
                     aux.Estado = (bool)datos.Lector["Estado"];
-
-                    // Nueva lectura para los bultos
                     aux.UnidadesPorPack = datos.Lector["UnidadesPorPack"] != DBNull.Value ? (int)datos.Lector["UnidadesPorPack"] : 1;
+
+                    // Nueva lectura: Mapeo del Descuento
+                    aux.PorcentajeDescuento = datos.Lector["PorcentajeDescuento"] != DBNull.Value ? (decimal)datos.Lector["PorcentajeDescuento"] : 0;
 
                     aux.Proveedor = new Proveedor();
                     aux.Proveedor.Id = (int)datos.Lector["IdProveedor"];
