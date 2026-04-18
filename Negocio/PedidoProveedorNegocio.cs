@@ -163,7 +163,7 @@ namespace Negocio
                 datos = new AccesoDatos();
                 datos.setearConsulta(@"
             SELECT D.Id, D.IdProductoProveedor, D.Cantidad, D.PrecioUnitario, D.Subtotal, 
-                   P.Codigo, P.Descripcion, P.UnidadesPorPack 
+                   P.Codigo, P.Descripcion, P.UnidadesPorPack
             FROM PEDIDOS_PROVEEDOR_DETALLE D
             INNER JOIN PRODUCTOS_PROVEEDOR P ON D.IdProductoProveedor = P.Id
             WHERE D.IdPedido = @idPed");
@@ -181,6 +181,7 @@ namespace Negocio
                     linea.Producto.Codigo = (string)datos.Lector["Codigo"];
                     linea.Producto.Descripcion = (string)datos.Lector["Descripcion"];
                     linea.Producto.UnidadesPorPack = datos.Lector["UnidadesPorPack"] != DBNull.Value ? (int)datos.Lector["UnidadesPorPack"] : 1;
+                    linea.Producto.PorcentajeDescuento = pedido.DescuentoPorcentaje;
 
                     pedido.Lineas.Add(linea);
                 }
@@ -238,6 +239,46 @@ namespace Negocio
                 }
             }
             finally { datos.CerrarConexion(); }
+        }
+
+        public void CambiarEstado(int idPedido, string nuevoEstado)
+        {
+            AccesoDatos datos = new AccesoDatos();
+            try
+            {
+                datos.setearConsulta("UPDATE PEDIDOS_PROVEEDOR SET Estado = @estado WHERE Id = @id");
+                datos.setearParametro("@estado", nuevoEstado);
+                datos.setearParametro("@id", idPedido);
+                datos.ejecutarAccion();
+            }
+            finally
+            {
+                datos.CerrarConexion();
+            }
+        }
+
+        public void ActualizarDescuentoMasivo(int idProveedor, string palabraClave, bool contienePalabra, decimal nuevoDescuento)
+        {
+            AccesoDatos datos = new AccesoDatos();
+            try
+            {
+                // Armamos el condicional (LIKE o NOT LIKE)
+                string operador = contienePalabra ? "LIKE" : "NOT LIKE";
+
+                // Aplicamos el descuento solo a los productos de ESTE proveedor que cumplan la regla
+                string consulta = $"UPDATE PRODUCTOS_PROVEEDOR SET PorcentajeDescuento = @desc WHERE IdProveedor = @idProv AND Descripcion {operador} @palabra";
+
+                datos.setearConsulta(consulta);
+                datos.setearParametro("@desc", nuevoDescuento);
+                datos.setearParametro("@idProv", idProveedor);
+                datos.setearParametro("@palabra", "%" + palabraClave.Trim() + "%");
+
+                datos.ejecutarAccion();
+            }
+            finally
+            {
+                datos.CerrarConexion();
+            }
         }
 
         public void Cancelar(int idPedido, string motivo)

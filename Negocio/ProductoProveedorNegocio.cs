@@ -96,5 +96,29 @@ namespace Negocio
                 datos.CerrarConexion();
             }
         }
+        // --- MÓDULO DE ACTUALIZACIÓN MASIVA ---
+        public void ActualizarDescuentoMasivo(int idProveedor, string palabraClave, bool contienePalabra, decimal nuevoDescuento)
+        {
+            AccesoDatos datos = new AccesoDatos();
+            try
+            {
+                // Armamos el condicional (LIKE o NOT LIKE) según lo que eligió el usuario
+                string operador = contienePalabra ? "LIKE" : "NOT LIKE";
+                
+                // Aplicamos el descuento solo a los productos de ESTE proveedor que cumplan la regla
+                string consulta = $"UPDATE PRODUCTOS_PROVEEDOR SET PorcentajeDescuento = @desc WHERE IdProveedor = @idProv AND Descripcion {operador} @palabra";
+
+                datos.setearConsulta(consulta);
+                datos.setearParametro("@desc", nuevoDescuento);
+                datos.setearParametro("@idProv", idProveedor);
+                datos.setearParametro("@palabra", "%" + palabraClave.Trim() + "%");
+
+                datos.ejecutarAccion();
+            }
+            finally
+            {
+                datos.CerrarConexion();
+            }
+        }
     }
 }

@@ -203,7 +203,7 @@
                                 <asp:GridView ID="gvLineas" runat="server" AutoGenerateColumns="False"
                                     CssClass="table table-hover align-middle text-center mb-0" OnRowCommand="gvLineas_RowCommand" GridLines="None">
                                     <Columns>
-                                        <asp:BoundField DataField="Producto.Codigo" HeaderText="SKU" ItemStyle-CssClass="text-start ps-3 fw-bold text-muted small" HeaderStyle-CssClass="text-start ps-3" />
+                                        <asp:BoundField DataField="Producto.Codigo" HeaderText="Cod." ItemStyle-CssClass="text-start ps-3 fw-bold text-muted small" HeaderStyle-CssClass="text-start ps-3" />
                                         <asp:BoundField DataField="Producto.Descripcion" HeaderText="Descripción Prov." ItemStyle-CssClass="text-start fw-medium text-dark" HeaderStyle-CssClass="text-start" />
                                         <asp:BoundField DataField="Cantidad" HeaderText="Unidades" ItemStyle-CssClass="fw-bold text-secondary" />
 

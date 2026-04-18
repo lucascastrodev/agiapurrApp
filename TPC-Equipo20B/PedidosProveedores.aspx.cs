@@ -87,9 +87,11 @@ namespace TPC_Equipo20B
         {
             int idPedido = int.Parse(hfPedidoId.Value);
 
-            // LA RECEPCIÓN: En lugar de procesarlo acá, lo mandamos a tu pantalla de Compras.
-            // Le pasamos el idPedido por URL. Así, cuando modifiquemos AgregarCompra.aspx,
-            // va a poder leer este ID, buscar los productos y llenar el carrito de la compra automáticamente.
+            // Cambiamos el estado en la base de datos ---
+            PedidoProveedorNegocio negocio = new PedidoProveedorNegocio();
+            negocio.CambiarEstado(idPedido, "Recibido");
+
+            // Redirigimos a la pantalla de Compras
             Response.Redirect("AgregarCompra.aspx?idPedido=" + idPedido, false);
         }
 

@@ -24,6 +24,9 @@ namespace TPC_Equipo20B
                     lblTitulo.InnerText = "Editar Proveedor";
                     btnProcesarUI.InnerHtml = "<span class=\"material-symbols-outlined fs-5\">save_as</span> Guardar Cambios";
 
+                    // Mostrar el botón de actualización masiva solo si el proveedor ya existe
+                    btnAbrirMasivo.Visible = true;
+
                     var p = _negocio.BuscarPorId(Id);
                     if (p != null)
                     {
@@ -42,6 +45,11 @@ namespace TPC_Equipo20B
                         txtIIBB.Text = p.PorcentajeIIBB.ToString("0.00");
                         txtPercepcion.Text = p.PorcentajePercepcion.ToString("0.00");
                     }
+                }
+                else
+                {
+                    // Ocultar el botón si estamos creando un proveedor nuevo
+                    btnAbrirMasivo.Visible = false;
                 }
             }
         }
@@ -100,6 +108,37 @@ namespace TPC_Equipo20B
         protected void btnCancelar_Click(object sender, EventArgs e)
         {
             Response.Redirect("Proveedores.aspx", false);
+        }
+
+        // --- LÓGICA DE ACTUALIZACIÓN MASIVA ---
+        protected void btnAplicarMasivo_Click(object sender, EventArgs e)
+        {
+            Page.Validate("Masivo");
+            if (!Page.IsValid) return;
+
+            try
+            {
+                // Cerramos el modal
+                ScriptManager.RegisterStartupScript(this, this.GetType(), "PopCerrarMasivo", "var modal = bootstrap.Modal.getInstance(document.getElementById('modalDescuentoMasivo')); if(modal) modal.hide();", true);
+
+                string palabra = txtPalabraClave.Text.Trim();
+                bool contiene = bool.Parse(ddlRegla.SelectedValue);
+                decimal nuevoPorcentaje = decimal.Parse(txtNuevoDescuentoMasivo.Text.Replace(".", ","));
+
+                ProductoProveedorNegocio neg = new ProductoProveedorNegocio();
+                neg.ActualizarDescuentoMasivo(Id, palabra, contiene, nuevoPorcentaje);
+
+                lblMensajeExitoModal.Text = $"Se actualizó correctamente el descuento al {nuevoPorcentaje}% para la familia '{palabra}'.";
+                ScriptManager.RegisterStartupScript(this, this.GetType(), "PopExito", "mostrarModalExito();", true);
+
+                // Limpiamos los campos
+                txtPalabraClave.Text = "";
+                txtNuevoDescuentoMasivo.Text = "";
+            }
+            catch (Exception ex)
+            {
+                lblError.Text = "Ocurrió un error al aplicar descuentos: " + ex.Message;
+            }
         }
     }
 }

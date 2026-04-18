@@ -159,16 +159,26 @@ namespace TPC_Equipo20B
 
             if (producto != null)
             {
-                // Si el carrito ya tiene cosas, revisamos que el nuevo producto tenga la misma regla de descuento que el resto
+                // Verificamos si estamos armando un pedido nuevo o editando uno histórico
+                bool esModoEdicion = Request.QueryString["id"] != null;
+
                 if (Lineas.Count > 0)
                 {
                     decimal descuentoActualDelCarrito = Lineas.First().Producto.PorcentajeDescuento;
 
-                    if (producto.PorcentajeDescuento != descuentoActualDelCarrito)
+                    // Si es un pedido NUEVO, el candado sigue bloqueando mezclas de familias
+                    if (!esModoEdicion && producto.PorcentajeDescuento != descuentoActualDelCarrito)
                     {
                         lblMensajeFooter.Text = "No se pueden mezclar productos de distintas familias (Ej: Yerbas con resto del catálogo) en el mismo pedido.";
                         lblMensajeFooter.Visible = true;
-                        return; // Frenamos la ejecución, no lo dejamos agregar
+                        return;
+                    }
+
+                    // Si estamos EDITANDO un pedido histórico, obligamos al producto nuevo 
+                    // a heredar el descuento congelado de la orden para no romper la matemática
+                    if (esModoEdicion)
+                    {
+                        producto.PorcentajeDescuento = descuentoActualDelCarrito;
                     }
                 }
 
@@ -198,7 +208,7 @@ namespace TPC_Equipo20B
             txtCantidad.Text = "";
             txtPrecio.Text = "";
             lblLabelCantidad.Text = "Cantidad";
-            lblMensajeFooter.Visible = false; // Limpiamos el error si todo salió bien
+            lblMensajeFooter.Visible = false;
         }
 
         protected void gvLineas_RowCommand(object sender, GridViewCommandEventArgs e)

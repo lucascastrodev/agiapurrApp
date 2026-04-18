@@ -168,8 +168,12 @@
                         <asp:RequiredFieldValidator ID="rfvLocalidad" runat="server" ControlToValidate="txtLocalidad" ErrorMessage="La localidad es obligatoria" ValidationGroup="GuardarProveedor" CssClass="error-flotante" Display="Dynamic" />
                     </div>
 
-                    <div class="col-12 mt-4 mb-2">
-                        <h5 class="fw-bold text-dark border-bottom pb-2">Configuración Impositiva y Comercial</h5>
+                    <div class="col-12 mt-4 mb-2 d-flex justify-content-between align-items-center border-bottom pb-2">
+                        <h5 class="fw-bold text-dark m-0">Configuración Impositiva y Comercial</h5>
+
+                        <button type="button" id="btnAbrirMasivo" runat="server" class="btn btn-sm btn-outline-primary fw-bold d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#modalDescuentoMasivo">
+                            <span class="material-symbols-outlined" style="font-size: 18px;">library_add_check</span> Actualización Masiva de Catálogo
+                        </button>
                     </div>
 
                     <div class="col-md-3">
@@ -291,15 +295,65 @@
         </div>
     </div>
 
+    <div class="modal fade" id="modalDescuentoMasivo" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow rounded-4">
+                <div class="modal-header bg-light border-bottom-0 pb-3 rounded-top-4">
+                    <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                        <span class="material-symbols-outlined text-primary">auto_fix_high</span> Aplicar Descuentos por Familia
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body px-4 pt-4 pb-2">
+                    <p class="text-muted small mb-4">Esta herramienta aplicará un porcentaje de descuento a múltiples productos de este proveedor según una palabra clave.</p>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Palabra Clave (Familia)</label>
+                        <asp:TextBox ID="txtPalabraClave" runat="server" CssClass="form-control" placeholder="Ej: Yerba" />
+                        <asp:RequiredFieldValidator ID="rfvPalabra" runat="server" ControlToValidate="txtPalabraClave" ErrorMessage="Ingrese una palabra" ValidationGroup="Masivo" CssClass="error-flotante" Display="Dynamic" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Regla de Aplicación</label>
+                        <asp:DropDownList ID="ddlRegla" runat="server" CssClass="form-select">
+                            <asp:ListItem Text="Aplicar a los productos que CONTENGAN la palabra" Value="true"></asp:ListItem>
+                            <asp:ListItem Text="Aplicar a los productos que NO CONTENGAN la palabra" Value="false"></asp:ListItem>
+                        </asp:DropDownList>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold">Nuevo Descuento a Aplicar (%)</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><span class="material-symbols-outlined text-muted" style="font-size: 18px;">percent</span></span>
+                            <asp:TextBox ID="txtNuevoDescuentoMasivo" runat="server" CssClass="form-control" placeholder="Ej: 15,00" />
+                        </div>
+                        <asp:RequiredFieldValidator ID="rfvNuevoDesc" runat="server" ControlToValidate="txtNuevoDescuentoMasivo" ErrorMessage="Requerido" ValidationGroup="Masivo" CssClass="error-flotante" Display="Dynamic" />
+                        <asp:RegularExpressionValidator ID="revNuevoDesc" runat="server" ControlToValidate="txtNuevoDescuentoMasivo" ErrorMessage="Formato inválido" ValidationExpression="^[0-9]+([.,][0-9]{1,2})?$" ValidationGroup="Masivo" CssClass="error-flotante" Display="Dynamic" />
+                    </div>
+                </div>
+                <div class="modal-footer bg-light border-top-0 rounded-bottom-4 py-3">
+                    <button type="button" class="btn btn-outline-secondary fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                    <asp:Button ID="btnAplicarMasivo" runat="server" Text="Ejecutar Actualización" CssClass="btn btn-primary fw-bold" OnClick="btnAplicarMasivo_Click" ValidationGroup="Masivo" />
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         function mostrarModalExito() {
             var modalSeguridad = bootstrap.Modal.getInstance(document.getElementById('modalSeguridadGuardar'));
             if (modalSeguridad) modalSeguridad.hide();
+
+            var modalMasivo = bootstrap.Modal.getInstance(document.getElementById('modalDescuentoMasivo'));
+            if (modalMasivo) modalMasivo.hide();
+
             new bootstrap.Modal(document.getElementById('modalExito')).show();
         }
+
         function cerrarModalSeguridad() {
             var myModal = bootstrap.Modal.getInstance(document.getElementById('modalSeguridadGuardar'));
             if (myModal) myModal.hide();
         }
     </script>
+
 </asp:Content>
