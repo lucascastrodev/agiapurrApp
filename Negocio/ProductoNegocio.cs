@@ -58,7 +58,7 @@ namespace Negocio
                     P.PorcentajeGanancia, P.PrecioNeto, P.Activo, P.Habilitado,
                     C.Id AS IdCategoria, C.Nombre AS NombreCategoria,
                     M.Id AS IdMarca, M.Nombre AS NombreMarca,
-                    Prov.IdProv, Prov.NombreProv, Prov.VendeConIVA,
+                    Prov.IdProv, Prov.NombreProv, Prov.VendeConIVA, Prov.PorcentajeIVA, -- <--- ¡ESTE ERA EL QUE FALTABA!
                     UP.PrecioActual, UP.FechaActual, UP.PrecioAnterior
                 FROM PRODUCTOS P
                 INNER JOIN CATEGORIAS C ON P.IdCategoria = C.Id
@@ -177,7 +177,7 @@ namespace Negocio
                     P.PrecioNeto, P.Activo, P.Habilitado,
                     C.Id AS IdCategoria, C.Nombre AS NombreCategoria,
                     M.Id AS IdMarca, M.Nombre AS NombreMarca,
-                    Prov.IdProv, Prov.NombreProv, Prov.VendeConIVA,
+                    Prov.IdProv, Prov.NombreProv, Prov.VendeConIVA, Prov.PorcentajeIVA, -- <--- ¡Y ACÁ TAMBIÉN!
                     UP.Precio AS PrecioUnitario, UP.Fecha AS FechaPrecio
                 FROM PRODUCTOS P
                 INNER JOIN CATEGORIAS C ON P.IdCategoria = C.Id

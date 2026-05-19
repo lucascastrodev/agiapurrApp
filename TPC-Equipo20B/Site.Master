@@ -17,127 +17,107 @@
             --ink: #222;
             --muted: #6b7280;
             --card: #ffffff;
-            --bg: #f6f7f9;
+            --bg: #eef2f6; /* Fondo apenas más gris para dar profundidad */
+            --navbar-bg: #1e293b; /* Color oscuro premium para el Navbar */
             --row-alt: #f8f9fa;
-            --radius: 14px;
+            --radius: 12px;
         }
 
         html, body {
-            height: 100%
+            height: 100%;
         }
 
         body {
-            font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
+            font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             background-color: var(--bg);
             color: var(--ink);
         }
 
-        .brand-dot {
-            width: 14px;
-            height: 14px;
-            border-radius: 4px;
-            background: var(--brand);
-            display: inline-block;
-            margin-right: .6rem
+        /* --- PROFUNDIDAD Y TARJETA --- */
+        .page {
+            background: var(--card);
+            border-radius: var(--radius);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* Sombra más pronunciada */
+            padding: 24px;
+            border-top: 4px solid var(--brand); /* El acento de color que enmarca la vista */
         }
 
-        .nav-link, .dropdown-item {
-            font-weight: 500
+        .page-title {
+            font-weight: 800;
+            letter-spacing: .2px;
         }
+
+        /* --- ESTILOS DEL NAVBAR OSCURO --- */
+        .navbar-custom {
+            background-color: var(--navbar-bg);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+            .navbar-custom .navbar-brand,
+            .navbar-custom .nav-link,
+            .navbar-custom .navbar-text {
+                color: #f8fafc !important; /* Letras blancas/gris claro */
+            }
+
+                .navbar-custom .nav-link:hover,
+                .navbar-custom .dropdown-toggle:hover {
+                    color: var(--brand) !important; /* Efecto hover en verde */
+                }
+
+            .navbar-custom .user-name {
+                color: var(--brand);
+                font-weight: 700;
+            }
+
+            /* Dropdowns dentro del navbar (para que sigan siendo blancos) */
+            .navbar-custom .dropdown-menu {
+                border: none;
+                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+                border-radius: 8px;
+            }
+
+            .navbar-custom .dropdown-item {
+                color: var(--ink) !important;
+                font-weight: 500;
+            }
+
+                .navbar-custom .dropdown-item:hover {
+                    background-color: #f8f9fa;
+                    color: var(--brand) !important;
+                }
+
+        /* --- GRILLAS Y BOTONES --- */
+        .grid .table {
+            margin-bottom: 0;
+        }
+
+            .grid .table > tbody > tr:nth-child(odd) {
+                background: var(--row-alt);
+            }
+
+            .grid .table th, .grid .table td {
+                text-align: center !important;
+                vertical-align: middle !important;
+            }
+
+            .grid .table th {
+                font-weight: 600 !important;
+                color: #4b5563 !important;
+                border-bottom: 2px solid #dee2e6 !important;
+            }
 
         .btn-brand {
             background: var(--brand);
             border-color: var(--brand);
-            color: white
+            color: white;
         }
 
             .btn-brand:hover {
                 background: var(--brand-ink);
                 border-color: var(--brand-ink);
-                color: white
+                color: white;
             }
 
-        .page {
-            background: var(--card);
-            border-radius: var(--radius);
-            box-shadow: 0 1px 2px rgba(16,24,40,.06),0 1px 1px rgba(16,24,40,.04);
-            padding: 24px;
-        }
-
-        .page-title {
-            font-weight: 800;
-            letter-spacing: .2px
-        }
-
-        .toolbar .form-control {
-            min-width: 340px
-        }
-
-        .grid .table {
-            margin-bottom: 0
-        }
-
-            .grid .table > tbody > tr:nth-child(odd) {
-                background: var(--row-alt)
-            }
-
-        .grid .action-col {
-            width: 180px
-        }
-
-        .btn-action-sm {
-            padding: .3rem .55rem;
-            font-size: .875rem;
-            border-radius: .45rem
-        }
-
-        .user-dropdown .dropdown-toggle::after {
-            margin-left: .5rem
-        }
-
-        .user-name {
-            color: var(--brand);
-            font-weight: 600
-        }
-
-        .navbar-brand img {
-            max-height: 42px;
-            height: auto;
-        }
-
-        .grid .table,
-        .grid .table th,
-        .grid .table td,
-        .grid .table span,
-        .grid .table a {
-            font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
-            font-size: 0.95rem !important;
-        }
-
-            /* El secreto para vencer el "align=left" por defecto de ASP.NET */
-            .grid .table th,
-            .grid .table td {
-                text-align: center !important;
-                vertical-align: middle !important;
-            }
-
-            /* Unificamos el color y peso de los encabezados de las columnas */
-            .grid .table th {
-                font-weight: 600 !important;
-                color: #4b5563 !important; /* Gris oscuro para que quede más moderno y suave */
-                border-bottom: 2px solid #dee2e6 !important;
-                background-color: transparent !important;
-            }
-
-                /* Links de ordenamiento (los de Productos) */
-                .grid .table th a.sort-link {
-                    color: #4b5563 !important;
-                    text-decoration: none !important;
-                }
-
-        /* --- NUEVOS ESTILOS ESTANDARIZADOS (BOTONES Y GRILLAS) --- */
-
-        /* 1. Botones principales (Encabezados y Búsqueda) */
         .btn-principal {
             border-radius: 6px;
             font-weight: 600;
@@ -145,7 +125,7 @@
             align-items: center;
             gap: 6px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.08);
-            transition: transform 0.15s ease-in-out, box-shadow 0.15s;
+            transition: transform 0.15s, box-shadow 0.15s;
         }
 
             .btn-principal:hover {
@@ -153,7 +133,6 @@
                 box-shadow: 0 4px 6px rgba(0,0,0,0.12);
             }
 
-        /* 2. Botones pequeños de la grilla (Acciones) */
         .btn-grilla {
             padding: 4px 10px;
             font-size: 0.85rem;
@@ -161,42 +140,35 @@
             font-weight: 600;
             display: inline-flex;
             align-items: center;
-            justify-content: center;
             gap: 5px;
-            white-space: nowrap; /* Impide que el texto se rompa en dos renglones */
+            white-space: nowrap;
         }
 
-        /* 3. Columna de acciones (Alineación perfecta) */
         .col-acciones {
             white-space: nowrap;
-            width: 1%; /* Mantiene la columna lo más compacta posible */
+            width: 1%;
             vertical-align: middle !important;
             text-align: center;
         }
 
-        /* --- PAGINADOR ESTILO BOOTSTRAP --- */
         .paginador-grid table {
             margin: 0 auto;
-            border-collapse: separate;
             border-spacing: 5px 0;
+            border-collapse: separate;
         }
 
             .paginador-grid table a {
                 display: inline-block;
                 padding: 6px 12px;
                 color: #0d6efd;
-                background-color: #fff;
                 border: 1px solid #dee2e6;
                 border-radius: 5px;
                 text-decoration: none;
                 font-weight: 500;
-                transition: all 0.2s ease-in-out;
             }
 
                 .paginador-grid table a:hover {
                     background-color: #e9ecef;
-                    border-color: #dee2e6;
-                    color: #0a58ca;
                 }
 
             .paginador-grid table span {
@@ -204,26 +176,18 @@
                 padding: 6px 12px;
                 color: #fff;
                 background-color: #0d6efd;
-                border: 1px solid #0d6efd;
                 border-radius: 5px;
                 font-weight: bold;
-                cursor: default;
-                box-shadow: 0 2px 4px rgba(13, 110, 253, 0.2);
             }
-
-        .grid .table th.text-start,
-        .grid .table td.text-start {
-            text-align: left !important;
-        }
     </style>
 
     <asp:ContentPlaceHolder ID="HeadContent" runat="server" />
 </head>
 <body>
     <form id="form1" runat="server">
-        <nav class="navbar navbar-expand-lg bg-white border-bottom py-2">
+        <nav class="navbar navbar-expand-lg navbar-custom py-2">
             <div class="container-fluid">
-                <a class="navbar-brand d-flex align-items-center fw-bold text-dark" href="/Default.aspx">
+                <a class="navbar-brand d-flex align-items-center fw-bold" href="/Default.aspx">
                     <img src="~/img/logo.png" runat="server"
                         alt="AGIAPURR"
                         style="height: 40px; width: auto; margin-right: 10px;" />
@@ -242,24 +206,25 @@
                             { %>
                         <li class="nav-item"><a class="nav-link" href="/Ventas.aspx">Ventas</a></li>
                         <li class="nav-item"><a class="nav-link" href="/Compras.aspx">Compras</a></li>
-                        <li class="nav-item"><a class="nav-link" href="/PedidosProveedores.aspx">Pedidos Prov.</a></li>
-                        <% }
-                            else
-                            { %>
-                        <li class="nav-item"><a class="nav-link" href="/Ventas.aspx">Mis Pedidos</a></li>
-                        <% } %>
-
                         <li class="nav-item"><a class="nav-link" href="/Productos.aspx">Productos</a></li>
-
-                        <% if ((bool)(Session["EsAdmin"] ?? false))
-                            { %>
                         <li class="nav-item"><a class="nav-link" href="/Reportes.aspx">Reportes</a></li>
+
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Proveedores</a>
+                            <ul class="dropdown-menu shadow-sm border-0 mt-1">
+                                <li><a class="dropdown-item py-2" href="/PedidosProveedores.aspx">Lista de Pedidos</a></li>
+                                <li><a class="dropdown-item py-2" href="/CatalogosProveedores.aspx">Catálogos y Precios</a></li>
+                                <li>
+                                    <hr class="dropdown-divider">
+                                </li>
+                                <li><a class="dropdown-item py-2 fw-semibold" href="/Proveedores.aspx">Gestión de Proveedores</a></li>
+                            </ul>
+                        </li>
 
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">Gestión</a>
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" href="/Clientes.aspx">Clientes</a></li>
-                                <li><a class="dropdown-item" href="/Proveedores.aspx">Proveedores</a></li>
                                 <li><a class="dropdown-item" href="/Categorias.aspx">Categorías</a></li>
                                 <li><a class="dropdown-item" href="/Marcas.aspx">Marcas</a></li>
                                 <li>
@@ -268,6 +233,11 @@
                                 <li><a class="dropdown-item" href="/Usuarios.aspx">Usuarios</a></li>
                             </ul>
                         </li>
+                        <% }
+                            else
+                            { %>
+                        <li class="nav-item"><a class="nav-link" href="/Ventas.aspx">Mis Pedidos</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/Productos.aspx">Productos</a></li>
                         <% } %>
                     </ul>
 
@@ -275,17 +245,17 @@
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <span class="navbar-text fw-semibold">Bienvenido, <span class="user-name"><%= Session["UsuarioNombre"] != null ? Session["UsuarioNombre"].ToString() : "Usuario" %></span></span>
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="/Perfil.aspx">Mi Perfil</a></li>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                            <li><a class="dropdown-item py-2" href="/Perfil.aspx">Mi Perfil</a></li>
                             <li>
                                 <hr class="dropdown-divider">
                             </li>
                             <li>
                                 <asp:LinkButton ID="btnCerrarSesion" runat="server"
-                                    CssClass="dropdown-item text-danger"
+                                    CssClass="dropdown-item text-danger py-2"
                                     OnClick="btnCerrarSesion_Click"
                                     CausesValidation="false">
-                                <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
+                                    Cerrar Sesión
                                 </asp:LinkButton>
                             </li>
                         </ul>

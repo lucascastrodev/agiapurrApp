@@ -36,6 +36,18 @@
             border-bottom: 2px solid #6610f2;
         }
 
+        /* Cuadraditos físicos para control con lapicera */
+        .caja-control {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid #495057;
+            border-radius: 3px;
+            margin: 0 3px;
+            vertical-align: middle;
+            background-color: transparent;
+        }
+
         /* --- ESTILOS EXCLUSIVOS PARA CUANDO SE GENERA EL PDF / IMPRIME --- */
         @media print {
             @page {
@@ -168,6 +180,11 @@
                 page-break-inside: avoid;
                 break-inside: avoid;
             }
+
+            /* Ajuste del grosor del cuadradito para impresión */
+            .caja-control {
+                border: 1.5px solid #000 !important;
+            }
         }
     </style>
 
@@ -237,18 +254,23 @@
                     <table class="table table-comprobante table-borderless align-middle">
                         <thead>
                             <tr>
-                                <th style="width: 10%">Cod.</th>
-                                <th style="width: 40%">Descripción del Producto</th>
-                                <th class="text-center" style="width: 10%">Cant.</th>
-                                <th class="text-center" style="width: 10%">Packs</th>
-                                <th class="text-end text-nowrap" style="width: 15%">Costo Unit.</th>
-                                <th class="text-end text-nowrap" style="width: 15%">Subtotal</th>
+                                <th class="text-center" style="width: 13%">Control</th>
+                                <th style="width: 8%">Cod.</th>
+                                <th style="width: 35%">Descripción del Producto</th>
+                                <th class="text-center" style="width: 8%">Cant.</th>
+                                <th class="text-center" style="width: 8%">Packs</th>
+                                <th class="text-end text-nowrap" style="width: 14%">Costo Unit.</th>
+                                <th class="text-end text-nowrap" style="width: 14%">Subtotal</th>
                             </tr>
                         </thead>
                         <tbody class="border-bottom">
                             <asp:Repeater ID="repDetalles" runat="server">
                                 <ItemTemplate>
                                     <tr>
+                                        <td class="text-center">
+                                            <div class="caja-control"></div>
+                                            <div class="caja-control"></div>
+                                        </td>
                                         <td class="fw-bold text-muted small"><%# Eval("Producto.Codigo") %></td>
                                         <td class="fw-medium text-dark"><%# Eval("Producto.Descripcion") %></td>
                                         <td class="text-center fw-bold"><%# Eval("Cantidad") %></td>
