@@ -52,6 +52,13 @@
                 color: #ffffff;
             }
 
+            .btn-proveedor-custom:disabled {
+                background-color: #a885e3;
+                border-color: #a885e3;
+                opacity: 1;
+                cursor: not-allowed;
+            }
+
         .text-proveedor {
             color: #6610f2 !important;
         }
@@ -113,12 +120,13 @@
                 <p id="lblSubtituloPagina" runat="server" class="text-muted m-0 mt-1">Seleccione la empresa y solicite los productos con su código específico</p>
             </div>
 
-            <div class="card shadow-sm border border-proveedor border-opacity-25 bg-white rounded-3 px-3 py-2">
+            <div class="card shadow-sm border border-proveedor border-opacity-25 bg-white rounded-3 px-3 py-2 position-relative">
                 <div class="d-flex align-items-center gap-2">
                     <span class="material-symbols-outlined text-proveedor">calendar_month</span>
                     <label for="txtFecha" class="fw-bold m-0 text-secondary small text-uppercase">Fecha Emisión:</label>
                     <asp:TextBox ID="txtFecha" runat="server" TextMode="Date" CssClass="form-control form-control-sm text-center fw-bold p-0 text-dark fs-6" Style="width: 125px; outline: none; box-shadow: none;" />
                 </div>
+                <asp:RequiredFieldValidator runat="server" ControlToValidate="txtFecha" ErrorMessage="Fecha requerida" ValidationGroup="GuardarPedido" CssClass="error-flotante end-0" Display="Dynamic" />
             </div>
         </div>
 
@@ -155,6 +163,10 @@
                                 <asp:DropDownList ID="ddlProducto" runat="server" CssClass="form-select border-start-0 fs-6" AutoPostBack="true" OnSelectedIndexChanged="ddlProducto_SelectedIndexChanged">
                                     <asp:ListItem Text="-- Seleccione un proveedor primero --" Value="0" />
                                 </asp:DropDownList>
+
+                                <button type="button" id="btnAbrirModalNuevoProd" runat="server" disabled="disabled" class="btn btn-proveedor-custom d-flex align-items-center justify-content-center px-3" data-bs-toggle="modal" data-bs-target="#modalNuevoProducto" title="Agregar producto al catálogo">
+                                    <span class="material-symbols-outlined">add</span>
+                                </button>
                             </div>
                             <div style="height: 18px;">
                                 <asp:RequiredFieldValidator ID="rfvProducto" runat="server" ControlToValidate="ddlProducto" ErrorMessage="Seleccione un producto" InitialValue="0" ValidationGroup="AgregarLinea" CssClass="error-flotante" Display="Dynamic"></asp:RequiredFieldValidator>
@@ -298,6 +310,65 @@
         </div>
     </div>
 
+    <div class="modal fade" id="modalNuevoProducto" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow rounded-4">
+                <div class="modal-header border-bottom-0 pb-3 bg-light rounded-top-4">
+                    <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                        <span class="material-symbols-outlined text-proveedor">add_box</span>
+                        Nuevo Producto
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body px-4 pt-4 pb-2">
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Código (SKU Proveedor)</label>
+                        <asp:TextBox ID="txtNuevoCodigo" runat="server" CssClass="form-control" placeholder="Ej: 58-193 (Dejar '-' si no tiene)" MaxLength="50"></asp:TextBox>
+                    </div>
+
+                    <div class="mb-3 position-relative" style="padding-bottom: 15px;">
+                        <label class="form-label small fw-bold">Descripción *</label>
+                        <asp:TextBox ID="txtNuevoDescripcion" runat="server" CssClass="form-control" placeholder="Ej: Yerba Mate Orgánica x 1 kg" MaxLength="200"></asp:TextBox>
+                        <asp:RequiredFieldValidator runat="server" ControlToValidate="txtNuevoDescripcion" ErrorMessage="Obligatorio" ValidationGroup="NuevoProd" CssClass="error-flotante" Display="Dynamic" />
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-6 position-relative" style="padding-bottom: 15px;">
+                            <label class="form-label small fw-bold">Costo Unitario *</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <asp:TextBox ID="txtNuevoPrecio" runat="server" CssClass="form-control" placeholder="0,00" MaxLength="12"></asp:TextBox>
+                            </div>
+                            <asp:RequiredFieldValidator runat="server" ControlToValidate="txtNuevoPrecio" ErrorMessage="Obligatorio" ValidationGroup="NuevoProd" CssClass="error-flotante mt-1" Display="Dynamic" />
+                            <asp:RegularExpressionValidator runat="server" ControlToValidate="txtNuevoPrecio" ErrorMessage="Formato inválido" ValidationExpression="^\d+([,\.]\d{1,2})?$" ValidationGroup="NuevoProd" CssClass="error-flotante mt-1 ms-5" Display="Dynamic" />
+                        </div>
+                        <div class="col-6 position-relative" style="padding-bottom: 15px;">
+                            <label class="form-label small fw-bold">Unidades x Pack *</label>
+                            <asp:TextBox ID="txtNuevoPack" runat="server" CssClass="form-control sin-flechas" TextMode="Number" Text="1" min="1"></asp:TextBox>
+                            <asp:RequiredFieldValidator runat="server" ControlToValidate="txtNuevoPack" ErrorMessage="Obligatorio" ValidationGroup="NuevoProd" CssClass="error-flotante mt-1" Display="Dynamic" />
+                            <asp:CompareValidator runat="server" ControlToValidate="txtNuevoPack" ErrorMessage="Mínimo 1" ValueToCompare="0" Operator="GreaterThan" Type="Integer" ValidationGroup="NuevoProd" CssClass="error-flotante mt-1 ms-5" Display="Dynamic" />
+                        </div>
+                    </div>
+
+                    <div class="mb-4 position-relative" style="padding-bottom: 15px;">
+                        <label class="form-label small fw-bold">Descuento Habitual (%) *</label>
+                        <div class="input-group">
+                            <asp:TextBox ID="txtNuevoDescuento" runat="server" CssClass="form-control" placeholder="0,00" Text="0,00" MaxLength="5"></asp:TextBox>
+                            <span class="input-group-text">%</span>
+                        </div>
+                        <asp:RequiredFieldValidator runat="server" ControlToValidate="txtNuevoDescuento" ErrorMessage="Obligatorio" ValidationGroup="NuevoProd" CssClass="error-flotante mt-1" Display="Dynamic" />
+                        <asp:RegularExpressionValidator runat="server" ControlToValidate="txtNuevoDescuento" ErrorMessage="Debe ser numérico" ValidationExpression="^\d+([,\.]\d{1,2})?$" ValidationGroup="NuevoProd" CssClass="error-flotante mt-1 ms-5" Display="Dynamic" />
+                    </div>
+
+                </div>
+                <div class="modal-footer bg-light border-top-0 rounded-bottom-4 py-3">
+                    <button type="button" class="btn btn-outline-secondary fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                    <asp:Button ID="btnGuardarNuevoProducto" runat="server" Text="Guardar y Seleccionar" CssClass="btn btn-proveedor-custom fw-bold px-4" ValidationGroup="NuevoProd" OnClick="btnGuardarNuevoProducto_Click" />
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="modal fade" id="modalCancelar" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow rounded-4">
@@ -327,7 +398,7 @@
                 </div>
                 <div class="modal-footer bg-light justify-content-center border-top-0 rounded-bottom-4 py-3 gap-2">
                     <button type="button" class="btn btn-outline-secondary px-4 fw-bold" data-bs-dismiss="modal">Revisar de nuevo</button>
-                    <asp:Button ID="btnGuardarDefinitivo" runat="server" Text="Sí, generar pedido" CssClass="btn btn-proveedor-custom px-4 fw-bold" OnClick="btnGuardar_Click" CausesValidation="false" />
+                    <asp:Button ID="btnGuardarDefinitivo" runat="server" Text="Sí, generar pedido" CssClass="btn btn-proveedor-custom px-4 fw-bold" ValidationGroup="GuardarPedido" OnClick="btnGuardar_Click" CausesValidation="true" />
                 </div>
             </div>
         </div>

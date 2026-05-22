@@ -56,7 +56,7 @@ namespace TPC_Equipo20B
 
         protected void cvNombreRazon_ServerValidate(object source, ServerValidateEventArgs args)
         {
-            args.IsValid = !string.IsNullOrEmpty(txtNombre.Text) || !string.IsNullOrEmpty(txtRazonSocial.Text);
+            args.IsValid = !string.IsNullOrEmpty(txtNombre.Text.Trim()) || !string.IsNullOrEmpty(txtRazonSocial.Text.Trim());
         }
 
         protected void btnGuardar_Click(object sender, EventArgs e)

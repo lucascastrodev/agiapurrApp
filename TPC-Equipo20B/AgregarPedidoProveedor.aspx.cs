@@ -54,6 +54,7 @@ namespace TPC_Equipo20B
 
                 ddlProveedor.SelectedValue = pedido.Proveedor.Id.ToString();
                 ddlProveedor.Enabled = false;
+                btnAbrirModalNuevoProd.Disabled = false; // Habilitar el botón '+' aunque se bloquee el proveedor
 
                 CargarProductosDelProveedor(pedido.Proveedor.Id);
 
@@ -83,11 +84,12 @@ namespace TPC_Equipo20B
                 ddlProducto.Items.Insert(0, new ListItem("-- Seleccione un proveedor primero --", "0"));
                 txtPrecio.Text = "";
                 lblLabelCantidad.Text = "Cantidad";
+                btnAbrirModalNuevoProd.Disabled = true; // Deshabilita el '+'
                 return;
             }
 
+            btnAbrirModalNuevoProd.Disabled = false; // Habilita el '+'
             CargarProductosDelProveedor(idProveedor);
-            // Al cambiar el proveedor, recalculamos los impuestos si es que hay algo en la grilla
             ActualizarGrid();
         }
 
@@ -133,7 +135,6 @@ namespace TPC_Equipo20B
             {
                 txtPrecio.Text = prod.PrecioUnitario.ToString("0.00");
 
-                // MAGIA 1: Si se vende por bulto, le avisamos visualmente al usuario
                 if (prod.UnidadesPorPack > 1)
                 {
                     lblLabelCantidad.Text = $"Cant. de Packs ({prod.UnidadesPorPack} un. c/u)";
@@ -145,8 +146,65 @@ namespace TPC_Equipo20B
             }
         }
 
+        // --- MAGIA: GUARDAR EL NUEVO PRODUCTO Y AUTO-SELECCIONARLO ---
+        protected void btnGuardarNuevoProducto_Click(object sender, EventArgs e)
+        {
+            // Validacion C# para evitar que modifiquen el HTML y hagan un Bypass
+            Page.Validate("NuevoProd");
+            if (!Page.IsValid) return;
+
+            try
+            {
+                if (ddlProveedor.SelectedValue == "0") return;
+
+                ProductoProveedor p = new ProductoProveedor();
+                p.Proveedor.Id = int.Parse(ddlProveedor.SelectedValue);
+                p.Codigo = string.IsNullOrWhiteSpace(txtNuevoCodigo.Text) ? "-" : txtNuevoCodigo.Text.Trim();
+                p.Descripcion = txtNuevoDescripcion.Text.Trim();
+
+                p.PrecioUnitario = decimal.Parse(txtNuevoPrecio.Text.Replace(".", ","));
+                p.PorcentajeDescuento = decimal.Parse(txtNuevoDescuento.Text.Replace(".", ","));
+                p.UnidadesPorPack = int.Parse(txtNuevoPack.Text);
+
+                ProductoProveedorNegocio negocio = new ProductoProveedorNegocio();
+                negocio.Agregar(p); // Se inserta en la BD
+
+                // 1. Recargamos la lista para que aparezca el nuevo
+                CargarProductosDelProveedor(p.Proveedor.Id);
+
+                // 2. Lo buscamos por su texto (ya que Agregar no devuelve el Id)
+                string textoGenerado = $"{p.Codigo} - {p.Descripcion}";
+                ListItem itemRecienAgregado = ddlProducto.Items.FindByText(textoGenerado);
+
+                if (itemRecienAgregado != null)
+                {
+                    ddlProducto.ClearSelection();
+                    itemRecienAgregado.Selected = true;
+                    ddlProducto_SelectedIndexChanged(null, null); // Forzar que se cargue el "Costo Unitario" en pantalla
+                }
+
+                // 3. Limpiamos el modal para la próxima vez
+                txtNuevoCodigo.Text = "";
+                txtNuevoDescripcion.Text = "";
+                txtNuevoPrecio.Text = "";
+                txtNuevoPack.Text = "1";
+                txtNuevoDescuento.Text = "0,00";
+
+                // 4. Cerramos el modal suavemente
+                ScriptManager.RegisterStartupScript(this, this.GetType(), "PopCloseNuevoProd", "var modal = bootstrap.Modal.getInstance(document.getElementById('modalNuevoProducto')); if(modal) modal.hide();", true);
+            }
+            catch (Exception ex)
+            {
+                lblMensajeFooter.Text = "Error al guardar el producto nuevo: " + ex.Message;
+                lblMensajeFooter.Visible = true;
+            }
+        }
+
         protected void btnAgregarLinea_Click(object sender, EventArgs e)
         {
+            Page.Validate("AgregarLinea");
+            if (!Page.IsValid) return;
+
             if (ddlProducto.SelectedValue == "0" || string.IsNullOrEmpty(txtCantidad.Text)) return;
 
             ddlProveedor.Enabled = false;
@@ -159,14 +217,12 @@ namespace TPC_Equipo20B
 
             if (producto != null)
             {
-                // Verificamos si estamos armando un pedido nuevo o editando uno histórico
                 bool esModoEdicion = Request.QueryString["id"] != null;
 
                 if (Lineas.Count > 0)
                 {
                     decimal descuentoActualDelCarrito = Lineas.First().Producto.PorcentajeDescuento;
 
-                    // Si es un pedido NUEVO, el candado sigue bloqueando mezclas de familias
                     if (!esModoEdicion && producto.PorcentajeDescuento != descuentoActualDelCarrito)
                     {
                         lblMensajeFooter.Text = "No se pueden mezclar productos de distintas familias (Ej: Yerbas con resto del catálogo) en el mismo pedido.";
@@ -174,8 +230,6 @@ namespace TPC_Equipo20B
                         return;
                     }
 
-                    // Si estamos EDITANDO un pedido histórico, obligamos al producto nuevo 
-                    // a heredar el descuento congelado de la orden para no romper la matemática
                     if (esModoEdicion)
                     {
                         producto.PorcentajeDescuento = descuentoActualDelCarrito;
@@ -226,6 +280,7 @@ namespace TPC_Equipo20B
                 }
             }
         }
+
         private void ActualizarGrid()
         {
             gvLineas.DataSource = Lineas;
@@ -237,11 +292,9 @@ namespace TPC_Equipo20B
                 ProveedorNegocio provNeg = new ProveedorNegocio();
                 Proveedor prov = provNeg.ObtenerPorId(idProv);
 
-                // 1. Subtotal Bruto
                 decimal subBruto = Lineas.Sum(l => l.Subtotal);
                 lblSubtotalBruto.Text = subBruto.ToString("C");
 
-                // 2. Descuento (AHORA ES DINÁMICO SEGÚN EL PRODUCTO)
                 decimal descPorc = Lineas.First().Producto.PorcentajeDescuento;
                 decimal descMonto = subBruto * (descPorc / 100);
 
@@ -249,11 +302,9 @@ namespace TPC_Equipo20B
                 lblDescuento.Text = "- " + descMonto.ToString("C");
                 divDescuento.Visible = descPorc > 0;
 
-                // 3. Neto
                 decimal subNeto = subBruto - descMonto;
                 lblSubtotalNeto.Text = subNeto.ToString("C");
 
-                // 4. Impuestos (Sobre el Neto)
                 decimal ivaPorc = prov != null ? prov.PorcentajeIVA : 0;
                 decimal montoIva = subNeto * (ivaPorc / 100);
                 lblPorcIva.Text = ivaPorc.ToString("0.##");
@@ -272,7 +323,6 @@ namespace TPC_Equipo20B
                 lblPercepcion.Text = montoPerc.ToString("C");
                 divPercepcion.Visible = percPorc > 0;
 
-                // 5. Total a Pagar
                 decimal total = subNeto + montoIva + montoIibb + montoPerc;
                 lblTotal.Text = total.ToString("C");
             }
@@ -294,6 +344,9 @@ namespace TPC_Equipo20B
 
         protected void btnGuardar_Click(object sender, EventArgs e)
         {
+            Page.Validate("GuardarPedido");
+            if (!Page.IsValid) return;
+
             try
             {
                 ScriptManager.RegisterStartupScript(this, this.GetType(), "PopCerrar", "var modal = bootstrap.Modal.getInstance(document.getElementById('modalSeguridadGuardar')); if(modal) modal.hide();", true);
@@ -306,7 +359,6 @@ namespace TPC_Equipo20B
 
                 decimal subBruto = Lineas.Sum(l => l.Subtotal);
 
-                // Mismo cálculo al guardar: tomamos la regla del producto, no del proveedor
                 decimal descPorc = Lineas.First().Producto.PorcentajeDescuento;
 
                 decimal descMonto = subBruto * (descPorc / 100);

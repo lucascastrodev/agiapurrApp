@@ -1,5 +1,4 @@
-﻿<%@ Page Title="Agregar Proveedor" Language="C#" MasterPageFile="~/Site.Master"
-    AutoEventWireup="true" CodeBehind="AgregarProveedor.aspx.cs" Inherits="TPC_Equipo20B.AgregarProveedor" %>
+﻿<%@ Page Title="Agregar Proveedor" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" CodeBehind="AgregarProveedor.aspx.cs" Inherits="TPC_Equipo20B.AgregarProveedor" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="MainContent" runat="server">
 
@@ -30,9 +29,11 @@
             font-weight: 500;
         }
 
+        /* Se agregó padding-bottom para que los errores flotantes no pisen la fila siguiente */
         .col-md-6, .col-md-3 {
             position: relative;
             margin-bottom: 1.5rem;
+            padding-bottom: 18px;
         }
 
         .material-symbols-outlined {
@@ -83,7 +84,7 @@
                             <span class="input-group-text bg-light border-end-0">
                                 <span class="material-symbols-outlined text-muted">storefront</span>
                             </span>
-                            <asp:TextBox ID="txtNombre" runat="server" CssClass="form-control border-start-0" placeholder="Nombre comercial" />
+                            <asp:TextBox ID="txtNombre" runat="server" CssClass="form-control border-start-0" placeholder="Nombre comercial" MaxLength="100" />
                         </div>
                         <asp:CustomValidator ID="cvNombreRazon" runat="server" ErrorMessage="Debe completar Nombre o Razón Social" ClientValidationFunction="validarNombreORazon" OnServerValidate="cvNombreRazon_ServerValidate" ValidationGroup="GuardarProveedor" CssClass="error-flotante" Display="Dynamic" />
                     </div>
@@ -94,7 +95,7 @@
                             <span class="input-group-text bg-light border-end-0">
                                 <span class="material-symbols-outlined text-muted">domain</span>
                             </span>
-                            <asp:TextBox ID="txtRazonSocial" runat="server" CssClass="form-control border-start-0" placeholder="Ej: Distribuidora Norte S.A." />
+                            <asp:TextBox ID="txtRazonSocial" runat="server" CssClass="form-control border-start-0" placeholder="Ej: Distribuidora Norte S.A." MaxLength="200" />
                         </div>
                     </div>
 
@@ -104,9 +105,10 @@
                             <span class="input-group-text bg-light border-end-0">
                                 <span class="material-symbols-outlined text-muted">credit_card</span>
                             </span>
-                            <asp:TextBox ID="txtDocumento" runat="server" CssClass="form-control border-start-0" placeholder="Ej: 30-12345678-9" />
+                            <asp:TextBox ID="txtDocumento" runat="server" CssClass="form-control border-start-0" placeholder="Ej: 30-12345678-9" MaxLength="20" />
                         </div>
-                        <asp:RegularExpressionValidator ID="revDocumento" runat="server" ControlToValidate="txtDocumento" ErrorMessage="Solo números y guiones" ValidationExpression="^[0-9-]+$" ValidationGroup="GuardarProveedor" CssClass="error-flotante" Display="Dynamic" />
+                        <asp:RequiredFieldValidator ID="rfvDocumento" runat="server" ControlToValidate="txtDocumento" ErrorMessage="Requerido" ValidationGroup="GuardarProveedor" CssClass="error-flotante" Display="Dynamic" />
+                        <asp:RegularExpressionValidator ID="revDocumento" runat="server" ControlToValidate="txtDocumento" ErrorMessage="Solo números y guiones" ValidationExpression="^[0-9-]+$" ValidationGroup="GuardarProveedor" CssClass="error-flotante ms-5 ps-3" Display="Dynamic" />
                     </div>
 
                     <div class="col-md-6">
@@ -130,7 +132,7 @@
                             <span class="input-group-text bg-light border-end-0">
                                 <span class="material-symbols-outlined text-muted">mail</span>
                             </span>
-                            <asp:TextBox ID="txtEmail" runat="server" CssClass="form-control border-start-0" TextMode="Email" placeholder="correo@proveedor.com" />
+                            <asp:TextBox ID="txtEmail" runat="server" CssClass="form-control border-start-0" TextMode="Email" placeholder="correo@proveedor.com" MaxLength="100" />
                         </div>
                         <asp:RequiredFieldValidator ID="rfvEmail" runat="server" ControlToValidate="txtEmail" ErrorMessage="El correo es obligatorio" ValidationGroup="GuardarProveedor" CssClass="error-flotante" Display="Dynamic" />
                     </div>
@@ -141,7 +143,7 @@
                             <span class="input-group-text bg-light border-end-0">
                                 <span class="material-symbols-outlined text-muted">phone</span>
                             </span>
-                            <asp:TextBox ID="txtTelefono" runat="server" CssClass="form-control border-start-0" placeholder="Ej: 011-4321-5678" />
+                            <asp:TextBox ID="txtTelefono" runat="server" CssClass="form-control border-start-0" placeholder="Ej: 011-4321-5678" MaxLength="50" />
                         </div>
                         <asp:RequiredFieldValidator ID="rfvTelefono" runat="server" ControlToValidate="txtTelefono" ErrorMessage="El teléfono es obligatorio" ValidationGroup="GuardarProveedor" CssClass="error-flotante" Display="Dynamic" />
                     </div>
@@ -152,7 +154,7 @@
                             <span class="input-group-text bg-light border-end-0">
                                 <span class="material-symbols-outlined text-muted">home</span>
                             </span>
-                            <asp:TextBox ID="txtDireccion" runat="server" CssClass="form-control border-start-0" placeholder="Ej: Av. Belgrano 3456" />
+                            <asp:TextBox ID="txtDireccion" runat="server" CssClass="form-control border-start-0" placeholder="Ej: Av. Belgrano 3456" MaxLength="200" />
                         </div>
                         <asp:RequiredFieldValidator ID="rfvDireccion" runat="server" ControlToValidate="txtDireccion" ErrorMessage="La dirección es obligatoria" ValidationGroup="GuardarProveedor" CssClass="error-flotante" Display="Dynamic" />
                     </div>
@@ -163,12 +165,12 @@
                             <span class="input-group-text bg-light border-end-0">
                                 <span class="material-symbols-outlined text-muted">location_city</span>
                             </span>
-                            <asp:TextBox ID="txtLocalidad" runat="server" CssClass="form-control border-start-0" placeholder="Ej: CABA" />
+                            <asp:TextBox ID="txtLocalidad" runat="server" CssClass="form-control border-start-0" placeholder="Ej: CABA" MaxLength="100" />
                         </div>
                         <asp:RequiredFieldValidator ID="rfvLocalidad" runat="server" ControlToValidate="txtLocalidad" ErrorMessage="La localidad es obligatoria" ValidationGroup="GuardarProveedor" CssClass="error-flotante" Display="Dynamic" />
                     </div>
 
-                    <div class="col-12 mt-4 mb-2 d-flex justify-content-between align-items-center border-bottom pb-2">
+                    <div class="col-12 mt-4 mb-2 d-flex justify-content-between align-items-center border-bottom pb-2" style="padding-bottom: 0 !important; margin-bottom: 1rem !important;">
                         <h5 class="fw-bold text-dark m-0">Configuración Impositiva y Comercial</h5>
 
                         <button type="button" id="btnAbrirMasivo" runat="server" class="btn btn-sm btn-outline-primary fw-bold d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#modalDescuentoMasivo">
@@ -182,10 +184,10 @@
                             <span class="input-group-text bg-light border-end-0">
                                 <span class="material-symbols-outlined text-muted" style="font-size: 18px;">percent</span>
                             </span>
-                            <asp:TextBox ID="txtDescuento" runat="server" CssClass="form-control border-start-0" Text="0.00" />
+                            <asp:TextBox ID="txtDescuento" runat="server" CssClass="form-control border-start-0" Text="0.00" MaxLength="6" />
                         </div>
-                        <asp:RequiredFieldValidator ID="rfvDescuento" runat="server" ControlToValidate="txtDescuento" ErrorMessage="Campo requerido" ValidationGroup="GuardarProveedor" CssClass="error-flotante" Display="Dynamic" />
-                        <asp:RegularExpressionValidator ID="revDescuento" runat="server" ControlToValidate="txtDescuento" ErrorMessage="Formato inválido (Ej: 10,50)" ValidationExpression="^[0-9]+([.,][0-9]{1,2})?$" ValidationGroup="GuardarProveedor" CssClass="error-flotante" Display="Dynamic" />
+                        <asp:RequiredFieldValidator ID="rfvDescuento" runat="server" ControlToValidate="txtDescuento" ErrorMessage="Requerido" ValidationGroup="GuardarProveedor" CssClass="error-flotante" Display="Dynamic" />
+                        <asp:RegularExpressionValidator ID="revDescuento" runat="server" ControlToValidate="txtDescuento" ErrorMessage="Ej: 10,50" ValidationExpression="^[0-9]+([.,][0-9]{1,2})?$" ValidationGroup="GuardarProveedor" CssClass="error-flotante ms-5 ps-2" Display="Dynamic" />
                     </div>
 
                     <div class="col-md-3">
@@ -194,10 +196,10 @@
                             <span class="input-group-text bg-light border-end-0">
                                 <span class="material-symbols-outlined text-muted" style="font-size: 18px;">account_balance</span>
                             </span>
-                            <asp:TextBox ID="txtIVA" runat="server" CssClass="form-control border-start-0" Text="0.00" />
+                            <asp:TextBox ID="txtIVA" runat="server" CssClass="form-control border-start-0" Text="0.00" MaxLength="6" />
                         </div>
-                        <asp:RequiredFieldValidator ID="rfvIVA" runat="server" ControlToValidate="txtIVA" ErrorMessage="Campo requerido" ValidationGroup="GuardarProveedor" CssClass="error-flotante" Display="Dynamic" />
-                        <asp:RegularExpressionValidator ID="revIVA" runat="server" ControlToValidate="txtIVA" ErrorMessage="Formato inválido (Ej: 21,00)" ValidationExpression="^[0-9]+([.,][0-9]{1,2})?$" ValidationGroup="GuardarProveedor" CssClass="error-flotante" Display="Dynamic" />
+                        <asp:RequiredFieldValidator ID="rfvIVA" runat="server" ControlToValidate="txtIVA" ErrorMessage="Requerido" ValidationGroup="GuardarProveedor" CssClass="error-flotante" Display="Dynamic" />
+                        <asp:RegularExpressionValidator ID="revIVA" runat="server" ControlToValidate="txtIVA" ErrorMessage="Ej: 21,00" ValidationExpression="^[0-9]+([.,][0-9]{1,2})?$" ValidationGroup="GuardarProveedor" CssClass="error-flotante ms-5 ps-2" Display="Dynamic" />
                     </div>
 
                     <div class="col-md-3">
@@ -206,10 +208,10 @@
                             <span class="input-group-text bg-light border-end-0">
                                 <span class="material-symbols-outlined text-muted" style="font-size: 18px;">receipt</span>
                             </span>
-                            <asp:TextBox ID="txtIIBB" runat="server" CssClass="form-control border-start-0" Text="0.00" />
+                            <asp:TextBox ID="txtIIBB" runat="server" CssClass="form-control border-start-0" Text="0.00" MaxLength="6" />
                         </div>
-                        <asp:RequiredFieldValidator ID="rfvIIBB" runat="server" ControlToValidate="txtIIBB" ErrorMessage="Campo requerido" ValidationGroup="GuardarProveedor" CssClass="error-flotante" Display="Dynamic" />
-                        <asp:RegularExpressionValidator ID="revIIBB" runat="server" ControlToValidate="txtIIBB" ErrorMessage="Formato inválido (Ej: 3,31)" ValidationExpression="^[0-9]+([.,][0-9]{1,2})?$" ValidationGroup="GuardarProveedor" CssClass="error-flotante" Display="Dynamic" />
+                        <asp:RequiredFieldValidator ID="rfvIIBB" runat="server" ControlToValidate="txtIIBB" ErrorMessage="Requerido" ValidationGroup="GuardarProveedor" CssClass="error-flotante" Display="Dynamic" />
+                        <asp:RegularExpressionValidator ID="revIIBB" runat="server" ControlToValidate="txtIIBB" ErrorMessage="Ej: 3,31" ValidationExpression="^[0-9]+([.,][0-9]{1,2})?$" ValidationGroup="GuardarProveedor" CssClass="error-flotante ms-5 ps-2" Display="Dynamic" />
                     </div>
 
                     <div class="col-md-3">
@@ -218,10 +220,10 @@
                             <span class="input-group-text bg-light border-end-0">
                                 <span class="material-symbols-outlined text-muted" style="font-size: 18px;">payments</span>
                             </span>
-                            <asp:TextBox ID="txtPercepcion" runat="server" CssClass="form-control border-start-0" Text="0.00" />
+                            <asp:TextBox ID="txtPercepcion" runat="server" CssClass="form-control border-start-0" Text="0.00" MaxLength="6" />
                         </div>
-                        <asp:RequiredFieldValidator ID="rfvPercepcion" runat="server" ControlToValidate="txtPercepcion" ErrorMessage="Campo requerido" ValidationGroup="GuardarProveedor" CssClass="error-flotante" Display="Dynamic" />
-                        <asp:RegularExpressionValidator ID="revPercepcion" runat="server" ControlToValidate="txtPercepcion" ErrorMessage="Formato inválido (Ej: 3,00)" ValidationExpression="^[0-9]+([.,][0-9]{1,2})?$" ValidationGroup="GuardarProveedor" CssClass="error-flotante" Display="Dynamic" />
+                        <asp:RequiredFieldValidator ID="rfvPercepcion" runat="server" ControlToValidate="txtPercepcion" ErrorMessage="Requerido" ValidationGroup="GuardarProveedor" CssClass="error-flotante" Display="Dynamic" />
+                        <asp:RegularExpressionValidator ID="revPercepcion" runat="server" ControlToValidate="txtPercepcion" ErrorMessage="Ej: 3,00" ValidationExpression="^[0-9]+([.,][0-9]{1,2})?$" ValidationGroup="GuardarProveedor" CssClass="error-flotante ms-5 ps-2" Display="Dynamic" />
                     </div>
 
                 </div>
@@ -307,9 +309,9 @@
                 <div class="modal-body px-4 pt-4 pb-2">
                     <p class="text-muted small mb-4">Esta herramienta aplicará un porcentaje de descuento a múltiples productos de este proveedor según una palabra clave.</p>
 
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold">Palabra Clave (Familia)</label>
-                        <asp:TextBox ID="txtPalabraClave" runat="server" CssClass="form-control" placeholder="Ej: Yerba" />
+                    <div class="mb-3 position-relative" style="padding-bottom: 15px;">
+                        <label class="form-label small fw-bold">Palabra Clave (Familia) *</label>
+                        <asp:TextBox ID="txtPalabraClave" runat="server" CssClass="form-control" placeholder="Ej: Yerba" MaxLength="100" />
                         <asp:RequiredFieldValidator ID="rfvPalabra" runat="server" ControlToValidate="txtPalabraClave" ErrorMessage="Ingrese una palabra" ValidationGroup="Masivo" CssClass="error-flotante" Display="Dynamic" />
                     </div>
 
@@ -321,14 +323,14 @@
                         </asp:DropDownList>
                     </div>
 
-                    <div class="mb-4">
-                        <label class="form-label small fw-bold">Nuevo Descuento a Aplicar (%)</label>
+                    <div class="mb-4 position-relative" style="padding-bottom: 15px;">
+                        <label class="form-label small fw-bold">Nuevo Descuento a Aplicar (%) *</label>
                         <div class="input-group">
                             <span class="input-group-text bg-light"><span class="material-symbols-outlined text-muted" style="font-size: 18px;">percent</span></span>
-                            <asp:TextBox ID="txtNuevoDescuentoMasivo" runat="server" CssClass="form-control" placeholder="Ej: 15,00" />
+                            <asp:TextBox ID="txtNuevoDescuentoMasivo" runat="server" CssClass="form-control" placeholder="Ej: 15,00" MaxLength="6" />
                         </div>
-                        <asp:RequiredFieldValidator ID="rfvNuevoDesc" runat="server" ControlToValidate="txtNuevoDescuentoMasivo" ErrorMessage="Requerido" ValidationGroup="Masivo" CssClass="error-flotante" Display="Dynamic" />
-                        <asp:RegularExpressionValidator ID="revNuevoDesc" runat="server" ControlToValidate="txtNuevoDescuentoMasivo" ErrorMessage="Formato inválido" ValidationExpression="^[0-9]+([.,][0-9]{1,2})?$" ValidationGroup="Masivo" CssClass="error-flotante" Display="Dynamic" />
+                        <asp:RequiredFieldValidator ID="rfvNuevoDesc" runat="server" ControlToValidate="txtNuevoDescuentoMasivo" ErrorMessage="Requerido" ValidationGroup="Masivo" CssClass="error-flotante mt-1" Display="Dynamic" />
+                        <asp:RegularExpressionValidator ID="revNuevoDesc" runat="server" ControlToValidate="txtNuevoDescuentoMasivo" ErrorMessage="Formato inválido" ValidationExpression="^[0-9]+([.,][0-9]{1,2})?$" ValidationGroup="Masivo" CssClass="error-flotante mt-1 ms-5 ps-3" Display="Dynamic" />
                     </div>
                 </div>
                 <div class="modal-footer bg-light border-top-0 rounded-bottom-4 py-3">
