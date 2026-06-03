@@ -144,13 +144,6 @@
                                     ValidationGroup="Login" />
                             </div>
 
-                            <div class="mb-3 d-flex justify-content-between align-items-center">
-                                <a class="link-primary small" href="RegistroUsuario.aspx">Registrarse</a>
-                                <a class="link-primary small" href="RecuperarPassword.aspx">Olvidé mi contraseña</a>
-                            </div>
-
-
-
                             <asp:Label ID="lblError" runat="server" CssClass="validator text-center mb-3" EnableViewState="false" />
 
                             <asp:Button ID="btnLogin" runat="server"

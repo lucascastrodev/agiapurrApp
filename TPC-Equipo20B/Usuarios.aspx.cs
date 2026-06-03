@@ -31,6 +31,50 @@ namespace TPC_Equipo20B
             Bind(txtBuscarUsuario.Text.Trim());
         }
 
+        // --- LÓGICA DEL NUEVO MODAL DE REGISTRO ---
+        protected void btnGuardarUsuarioModal_Click(object sender, EventArgs e)
+        {
+            Page.Validate("NuevoUser");
+            if (!Page.IsValid) return;
+
+            UsuarioNegocio negocio = new UsuarioNegocio();
+
+            try
+            {
+                Usuario nuevoUsuario = new Usuario
+                {
+                    Nombre = txtNuevoNombre.Text.Trim(),
+                    Email = txtNuevoEmail.Text.Trim(),
+                    Username = txtNuevoUsername.Text.Trim(),
+                    Password = txtNuevoPassword.Text,
+                    Activo = true
+                };
+
+                // Guardamos usando la lógica que ya tiene BCrypt adentro
+                negocio.RegistrarUsuario(nuevoUsuario);
+
+                // Refrescamos la grilla
+                Bind();
+
+                // Limpiamos los campos
+                txtNuevoNombre.Text = "";
+                txtNuevoEmail.Text = "";
+                txtNuevoUsername.Text = "";
+
+                // Cerramos el modal de alta y abrimos el de éxito
+                ScriptManager.RegisterStartupScript(this, this.GetType(), "PopModal",
+                    "var m = bootstrap.Modal.getInstance(document.getElementById('modalNuevoUsuario')); if(m) m.hide(); " +
+                    "new bootstrap.Modal(document.getElementById('modalExitoUsuario')).show();", true);
+            }
+            catch (Exception ex)
+            {
+                lblErrorModal.Text = ex.Message;
+                // Dejamos el modal abierto para que vea el error
+                ScriptManager.RegisterStartupScript(this, this.GetType(), "MantenerAbierto",
+                    "new bootstrap.Modal(document.getElementById('modalNuevoUsuario')).show();", true);
+            }
+        }
+
         protected void gvUsuarios_RowCommand(object sender, GridViewCommandEventArgs e)
         {
             if (string.IsNullOrEmpty(e.CommandArgument.ToString()))
@@ -39,7 +83,6 @@ namespace TPC_Equipo20B
             int idActual = Convert.ToInt32(Session["UsuarioId"]);
             int idUsuario = Convert.ToInt32(e.CommandArgument);
 
-            // No permitir auto-modificarse
             if (idUsuario == idActual)
                 return;
 
@@ -64,7 +107,6 @@ namespace TPC_Equipo20B
                 case "ToggleActivo":
                     Usuario usuario = neg.ObtenerUsuarioPorId(idUsuario);
 
-                    // por seguridad: no permitir deshabilitar admins desde acá
                     if (usuario.Roles.Any(r => r.Id == 1))
                         return;
 
@@ -75,7 +117,6 @@ namespace TPC_Equipo20B
                     break;
             }
 
-            // Volvemos a bindear respetando el filtro actual
             Bind(txtBuscarUsuario.Text.Trim());
         }
 
@@ -93,7 +134,6 @@ namespace TPC_Equipo20B
 
             bool esAdmin = usuario.Roles.Any(r => r.Id == 1);
 
-            // Si es el usuario logueado → ocultamos todas las acciones
             if (usuario.Id == idActual)
             {
                 btnCambiarRol.Visible = false;
@@ -102,12 +142,15 @@ namespace TPC_Equipo20B
                 return;
             }
 
-            // ---- Botón Cambiar Rol ----
-            // Agregamos íconos para identificar visualmente la acción
+            // --- CONFIRMACIONES DE SEGURIDAD JS ---
+            btnCambiarRol.OnClientClick = "return confirm('¿Está seguro de modificar los permisos de este usuario?');";
+            btnToggleActivo.OnClientClick = "return confirm('¿Está seguro de cambiar el estado de acceso de este usuario?');";
+
             if (esAdmin)
             {
                 btnCambiarRol.Text = "<i class='bi bi-person-badge'></i> Hacer Vendedor";
                 btnCambiarRol.CssClass = "btn btn-secondary btn-grilla me-1 shadow-sm";
+                e.Row.CssClass = "fila-admin fw-bold";
             }
             else
             {
@@ -115,27 +158,16 @@ namespace TPC_Equipo20B
                 btnCambiarRol.CssClass = "btn btn-warning text-dark btn-grilla me-1 shadow-sm";
             }
 
-            // ---- Botón Activar / Desactivar ----
             if (usuario.Activo)
             {
                 btnToggleActivo.Text = "<i class='bi bi-person-x-fill'></i> Deshabilitar";
-                // Clase btn-danger de Bootstrap + clase global btn-grilla
                 btnToggleActivo.CssClass = "btn btn-danger btn-grilla shadow-sm";
             }
             else
             {
                 btnToggleActivo.Text = "<i class='bi bi-person-check-fill'></i> Habilitar";
-                // Clase btn-success para habilitar
                 btnToggleActivo.CssClass = "btn btn-success btn-grilla shadow-sm";
-
-                // Efecto visual: si está deshabilitado, la fila se ve más "apagada"
                 e.Row.CssClass = "text-muted";
-            }
-
-            // Efecto visual: resaltamos la fila si es Admin
-            if (esAdmin)
-            {
-                e.Row.CssClass = "fila-admin fw-bold";
             }
         }
     }

@@ -12,19 +12,15 @@ namespace Negocio
             AccesoDatos datos = new AccesoDatos();
             try
             {
-                if (string.IsNullOrWhiteSpace(nuevoUsuario.Documento))
-                    throw new Exception("El documento es obligatorio.");
-
-                if (ExisteDocumento(nuevoUsuario.Documento))
-                    throw new Exception("El documento ya está registrado.");
-
                 if (ExisteUsername(nuevoUsuario.Username))
                     throw new Exception("El nombre de usuario ya está en uso.");
 
                 if (ExisteEmail(nuevoUsuario.Email))
                     throw new Exception("El correo electrónico ya está registrado.");
 
-                // --- INYECTADO OBSERVACIONES ---
+                // --- MAGIA DE SEGURIDAD: Encriptamos la contraseña ---
+                string passwordHash = BCrypt.Net.BCrypt.HashPassword(nuevoUsuario.Password);
+
                 datos.setearConsulta(@"
             INSERT INTO USUARIOS (Nombre, Documento, Email, Telefono, Direccion, Localidad, Username, Password, Activo, Observaciones) 
             VALUES (@Nombre, @Documento, @Email, @Telefono, @Direccion, @Localidad, @Username, @Password, @Activo, @Observaciones);
@@ -32,22 +28,29 @@ namespace Negocio
         ");
 
                 datos.setearParametro("@Nombre", nuevoUsuario.Nombre);
-                datos.setearParametro("@Documento", nuevoUsuario.Documento);
+                datos.setearParametro("@Documento", string.IsNullOrWhiteSpace(nuevoUsuario.Documento) ? (object)DBNull.Value : nuevoUsuario.Documento);
                 datos.setearParametro("@Email", nuevoUsuario.Email);
-                datos.setearParametro("@Telefono", nuevoUsuario.Telefono);
-                datos.setearParametro("@Direccion", nuevoUsuario.Direccion);
-                datos.setearParametro("@Localidad", nuevoUsuario.Localidad);
+                datos.setearParametro("@Telefono", string.IsNullOrWhiteSpace(nuevoUsuario.Telefono) ? (object)DBNull.Value : nuevoUsuario.Telefono);
+                datos.setearParametro("@Direccion", string.IsNullOrWhiteSpace(nuevoUsuario.Direccion) ? (object)DBNull.Value : nuevoUsuario.Direccion);
+                datos.setearParametro("@Localidad", string.IsNullOrWhiteSpace(nuevoUsuario.Localidad) ? (object)DBNull.Value : nuevoUsuario.Localidad);
                 datos.setearParametro("@Username", nuevoUsuario.Username);
-                datos.setearParametro("@Password", nuevoUsuario.Password);
+
+                // Guardamos el Hash, NUNCA el texto plano
+                datos.setearParametro("@Password", passwordHash);
+
                 datos.setearParametro("@Activo", nuevoUsuario.Activo);
-                datos.setearParametro("@Observaciones", nuevoUsuario.Observaciones); // NUEVO
+                datos.setearParametro("@Observaciones", string.IsNullOrWhiteSpace(nuevoUsuario.Observaciones) ? (object)DBNull.Value : nuevoUsuario.Observaciones);
 
                 int idUsuario = Convert.ToInt32(datos.EjecutarScalar());
 
                 AsignarRol(idUsuario, 2);
 
+                // --- CORREO DE BIENVENIDA CON CREDENCIALES ---
                 if (!string.IsNullOrWhiteSpace(nuevoUsuario.Email))
-                    EmailService.EnviarBienvenidaUsuario(nuevoUsuario);
+                {
+                    // Le pasamos la password original (en texto plano) antes de que el objeto se destruya
+                    EmailService.EnviarBienvenidaUsuario(nuevoUsuario, nuevoUsuario.Password);
+                }
 
                 return true;
             }
@@ -57,6 +60,121 @@ namespace Negocio
                     throw new Exception("El documento ingresado ya está asociado a otro usuario.");
 
                 throw;
+            }
+            finally
+            {
+                datos.CerrarConexion();
+            }
+        }
+
+        public Usuario ValidarLogin(string username, string password)
+        {
+            AccesoDatos datos = new AccesoDatos();
+            Usuario usuario = null;
+
+            try
+            {
+                datos.setearConsulta(@"
+                    SELECT U.Id, U.Nombre, U.Documento, U.Email, U.Telefono, 
+                           U.Direccion, U.Localidad, U.Username, U.Password, U.Activo, U.Observaciones
+                    FROM USUARIOS U
+                    WHERE U.Username = @Username");
+
+                datos.setearParametro("@Username", username);
+                datos.ejecutarLectura();
+
+                if (datos.Lector.Read())
+                {
+                    string hashGuardado = datos.Lector["Password"].ToString();
+                    bool loginValido = false;
+
+                    if (hashGuardado.StartsWith("$2"))
+                    {
+                        loginValido = BCrypt.Net.BCrypt.Verify(password, hashGuardado);
+                    }
+                    else
+                    {
+                        if (hashGuardado == password)
+                        {
+                            loginValido = true;
+                        }
+                    }
+
+                    if (loginValido)
+                    {
+                        usuario = new Usuario
+                        {
+                            Id = (int)datos.Lector["Id"],
+                            Nombre = datos.Lector["Nombre"].ToString(),
+                            Documento = datos.Lector["Documento"] != DBNull.Value ? datos.Lector["Documento"].ToString() : null,
+                            Email = datos.Lector["Email"].ToString(),
+                            Telefono = datos.Lector["Telefono"] != DBNull.Value ? datos.Lector["Telefono"].ToString() : null,
+                            Direccion = datos.Lector["Direccion"] != DBNull.Value ? datos.Lector["Direccion"].ToString() : null,
+                            Localidad = datos.Lector["Localidad"] != DBNull.Value ? datos.Lector["Localidad"].ToString() : null,
+                            Username = datos.Lector["Username"].ToString(),
+                            Activo = (bool)datos.Lector["Activo"],
+                            Observaciones = datos.Lector["Observaciones"] != DBNull.Value ? datos.Lector["Observaciones"].ToString() : null
+                        };
+
+                        usuario.Roles = ObtenerRolesUsuario(usuario.Id);
+                    }
+                }
+
+                return usuario;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            finally
+            {
+                datos.CerrarConexion();
+            }
+        }
+
+        public bool CambiarPassword(int idUsuario, string nuevaPassword)
+        {
+            AccesoDatos datos = new AccesoDatos();
+            try
+            {
+                string passwordHash = BCrypt.Net.BCrypt.HashPassword(nuevaPassword);
+
+                datos.setearConsulta("UPDATE USUARIOS SET Password = @Password WHERE Id = @Id");
+                datos.setearParametro("@Password", passwordHash);
+                datos.setearParametro("@Id", idUsuario);
+
+                datos.ejecutarAccion();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            finally
+            {
+                datos.CerrarConexion();
+            }
+        }
+
+        public bool RestablecerPasswordPorEmail(string email, string nuevaPassword)
+        {
+            AccesoDatos datos = new AccesoDatos();
+            try
+            {
+                string passwordHash = BCrypt.Net.BCrypt.HashPassword(nuevaPassword);
+
+                datos.setearConsulta("UPDATE USUARIOS SET Password = @Password WHERE Email = @Email AND Activo = 1");
+                datos.setearParametro("@Password", passwordHash);
+                datos.setearParametro("@Email", email);
+
+                datos.ejecutarAccion();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
             }
             finally
             {
@@ -126,129 +244,6 @@ namespace Negocio
             }
         }
 
-        public Usuario ValidarLogin(string username, string password)
-        {
-            AccesoDatos datos = new AccesoDatos();
-            Usuario usuario = null;
-
-            try
-            {
-                // --- INYECTADO OBSERVACIONES ---
-                datos.setearConsulta(@"
-                    SELECT U.Id, U.Nombre, U.Documento, U.Email, U.Telefono, 
-                           U.Direccion, U.Localidad, U.Username, U.Activo, U.Observaciones
-                    FROM USUARIOS U
-                    WHERE U.Username = @Username AND U.Password = @Password");
-
-                datos.setearParametro("@Username", username);
-                datos.setearParametro("@Password", password);
-
-                datos.ejecutarLectura();
-
-                if (datos.Lector.Read())
-                {
-                    usuario = new Usuario
-                    {
-                        Id = (int)datos.Lector["Id"],
-                        Nombre = datos.Lector["Nombre"].ToString(),
-                        Documento = datos.Lector["Documento"] != DBNull.Value ? datos.Lector["Documento"].ToString() : null,
-                        Email = datos.Lector["Email"].ToString(),
-                        Telefono = datos.Lector["Telefono"] != DBNull.Value ? datos.Lector["Telefono"].ToString() : null,
-                        Direccion = datos.Lector["Direccion"] != DBNull.Value ? datos.Lector["Direccion"].ToString() : null,
-                        Localidad = datos.Lector["Localidad"] != DBNull.Value ? datos.Lector["Localidad"].ToString() : null,
-                        Username = datos.Lector["Username"].ToString(),
-                        Activo = (bool)datos.Lector["Activo"],
-                        Observaciones = datos.Lector["Observaciones"] != DBNull.Value ? datos.Lector["Observaciones"].ToString() : null // NUEVO
-                    };
-
-                    usuario.Roles = ObtenerRolesUsuario(usuario.Id);
-                }
-
-                return usuario;
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-            finally
-            {
-                datos.CerrarConexion();
-            }
-        }
-
-        public Usuario ObtenerPorEmail(string email)
-        {
-            AccesoDatos datos = new AccesoDatos();
-            Usuario usuario = null;
-
-            try
-            {
-                // --- INYECTADO OBSERVACIONES ---
-                datos.setearConsulta(@"
-                    SELECT Id, Nombre, Documento, Email, Telefono, 
-                           Direccion, Localidad, Username, Password, Activo, Observaciones
-                    FROM USUARIOS
-                    WHERE Email = @Email AND Activo = 1");
-
-                datos.setearParametro("@Email", email);
-                datos.ejecutarLectura();
-
-                if (datos.Lector.Read())
-                {
-                    usuario = new Usuario
-                    {
-                        Id = (int)datos.Lector["Id"],
-                        Nombre = datos.Lector["Nombre"] as string,
-                        Documento = datos.Lector["Documento"] as string,
-                        Email = datos.Lector["Email"] as string,
-                        Telefono = datos.Lector["Telefono"] as string,
-                        Direccion = datos.Lector["Direccion"] as string,
-                        Localidad = datos.Lector["Localidad"] as string,
-                        Username = datos.Lector["Username"] as string,
-                        Password = datos.Lector["Password"] as string,
-                        Activo = (bool)datos.Lector["Activo"],
-                        Observaciones = datos.Lector["Observaciones"] as string // NUEVO
-                    };
-
-                    usuario.Roles = ObtenerRolesUsuario(usuario.Id);
-                }
-
-                return usuario;
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-            finally
-            {
-                datos.CerrarConexion();
-            }
-        }
-
-        public bool RestablecerPasswordPorEmail(string email, string nuevaPassword)
-        {
-            AccesoDatos datos = new AccesoDatos();
-
-            try
-            {
-                datos.setearConsulta("UPDATE USUARIOS SET Password = @Password WHERE Email = @Email AND Activo = 1");
-                datos.setearParametro("@Password", nuevaPassword);
-                datos.setearParametro("@Email", email);
-
-                datos.ejecutarAccion();
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-            finally
-            {
-                datos.CerrarConexion();
-            }
-        }
-
         private List<UsuarioRol> ObtenerRolesUsuario(int idUsuario)
         {
             AccesoDatos datos = new AccesoDatos();
@@ -288,8 +283,6 @@ namespace Negocio
             AccesoDatos datos = new AccesoDatos();
             try
             {
-                // Usamos un solo bloque de consulta para actualizar AMBAS tablas al mismo tiempo.
-                // Si el usuario también existe como cliente (coinciden por Documento), se sincronizan sus datos de envío.
                 datos.setearConsulta(@"
             UPDATE USUARIOS 
             SET Nombre = @Nombre, 
@@ -313,38 +306,14 @@ namespace Negocio
               AND LTRIM(RTRIM(Documento)) <> '';
         ");
 
-                // Pasamos los parámetros una sola vez y sirven para los dos UPDATE
                 datos.setearParametro("@Nombre", usuario.Nombre);
-                datos.setearParametro("@Documento", usuario.Documento);
+                datos.setearParametro("@Documento", string.IsNullOrWhiteSpace(usuario.Documento) ? (object)DBNull.Value : usuario.Documento);
                 datos.setearParametro("@Email", usuario.Email);
-                datos.setearParametro("@Telefono", usuario.Telefono);
-                datos.setearParametro("@Direccion", usuario.Direccion);
-                datos.setearParametro("@Localidad", usuario.Localidad);
-                datos.setearParametro("@Observaciones", usuario.Observaciones);
+                datos.setearParametro("@Telefono", string.IsNullOrWhiteSpace(usuario.Telefono) ? (object)DBNull.Value : usuario.Telefono);
+                datos.setearParametro("@Direccion", string.IsNullOrWhiteSpace(usuario.Direccion) ? (object)DBNull.Value : usuario.Direccion);
+                datos.setearParametro("@Localidad", string.IsNullOrWhiteSpace(usuario.Localidad) ? (object)DBNull.Value : usuario.Localidad);
+                datos.setearParametro("@Observaciones", string.IsNullOrWhiteSpace(usuario.Observaciones) ? (object)DBNull.Value : usuario.Observaciones);
                 datos.setearParametro("@Id", usuario.Id);
-
-                datos.ejecutarAccion();
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-            finally
-            {
-                datos.CerrarConexion();
-            }
-        }
-
-        public bool CambiarPassword(int idUsuario, string nuevaPassword)
-        {
-            AccesoDatos datos = new AccesoDatos();
-            try
-            {
-                datos.setearConsulta("UPDATE USUARIOS SET Password = @Password WHERE Id = @Id");
-                datos.setearParametro("@Password", nuevaPassword);
-                datos.setearParametro("@Id", idUsuario);
 
                 datos.ejecutarAccion();
 
@@ -367,7 +336,6 @@ namespace Negocio
 
             try
             {
-                // --- INYECTADO OBSERVACIONES ---
                 string query = @"
                     SELECT 
                         U.Id, U.Nombre, U.Documento, U.Email, U.Telefono,
@@ -410,7 +378,7 @@ namespace Negocio
                         Username = (string)datos.Lector["Username"],
                         Password = (string)datos.Lector["Password"],
                         Activo = (bool)datos.Lector["Activo"],
-                        Observaciones = datos.Lector["Observaciones"] as string // NUEVO
+                        Observaciones = datos.Lector["Observaciones"] as string
                     };
 
                     var rol = new UsuarioRol
@@ -420,7 +388,6 @@ namespace Negocio
                     };
 
                     u.Roles.Add(rol);
-
                     lista.Add(u);
                 }
 
@@ -487,7 +454,7 @@ namespace Negocio
                         Username = datos.Lector["Username"] as string,
                         Password = datos.Lector["Password"] as string,
                         Activo = (bool)datos.Lector["Activo"],
-                        Observaciones = datos.Lector["Observaciones"] as string // NUEVO
+                        Observaciones = datos.Lector["Observaciones"] as string
                     };
                 }
 
@@ -495,6 +462,54 @@ namespace Negocio
                     usuario.Roles = ObtenerRolesUsuario(usuario.Id);
 
                 return usuario;
+            }
+            finally
+            {
+                datos.CerrarConexion();
+            }
+        }
+
+        public Usuario ObtenerPorEmail(string email)
+        {
+            AccesoDatos datos = new AccesoDatos();
+            Usuario usuario = null;
+
+            try
+            {
+                datos.setearConsulta(@"
+                    SELECT Id, Nombre, Documento, Email, Telefono, 
+                           Direccion, Localidad, Username, Password, Activo, Observaciones
+                    FROM USUARIOS
+                    WHERE Email = @Email AND Activo = 1");
+
+                datos.setearParametro("@Email", email);
+                datos.ejecutarLectura();
+
+                if (datos.Lector.Read())
+                {
+                    usuario = new Usuario
+                    {
+                        Id = (int)datos.Lector["Id"],
+                        Nombre = datos.Lector["Nombre"] as string,
+                        Documento = datos.Lector["Documento"] as string,
+                        Email = datos.Lector["Email"] as string,
+                        Telefono = datos.Lector["Telefono"] as string,
+                        Direccion = datos.Lector["Direccion"] as string,
+                        Localidad = datos.Lector["Localidad"] as string,
+                        Username = datos.Lector["Username"] as string,
+                        Password = datos.Lector["Password"] as string,
+                        Activo = (bool)datos.Lector["Activo"],
+                        Observaciones = datos.Lector["Observaciones"] as string
+                    };
+
+                    usuario.Roles = ObtenerRolesUsuario(usuario.Id);
+                }
+
+                return usuario;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
             }
             finally
             {
@@ -549,6 +564,5 @@ namespace Negocio
                 datos.CerrarConexion();
             }
         }
-
     }
 }

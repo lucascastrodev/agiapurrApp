@@ -10,12 +10,49 @@ namespace Negocio
     {
         private const string Remitente = "tpcomercio.equipo20b@gmail.com";
         private const string Clave = "wnutobmznfmnnpog";
-        private const string NombreRemitente = "Comercio";
+        private const string NombreRemitente = "AGIAPURR Distribuidora";
+        private const string EmailAdministrador = "lucastro1991.lc@gmail.com";
+
+        // --- PLANTILLA BASE PARA TODOS LOS CORREOS ---
+        // Esto asegura que todos los mails tengan la misma estética profesional
+        private static string GenerarPlantillaBase(string titulo, string contenidoHtml)
+        {
+            return $@"
+            <html>
+            <body style='font-family: ""Segoe UI"", Tahoma, Geneva, Verdana, sans-serif; background-color: #f6f8f6; margin: 0; padding: 20px;'>
+                <table width='100%' border='0' cellspacing='0' cellpadding='0'>
+                    <tr>
+                        <td align='center'>
+                            <table width='600' border='0' cellspacing='0' cellpadding='0' style='background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05);'>
+                                <tr>
+                                    <td style='background-color: #11d452; padding: 25px; text-align: center;'>
+                                        <h1 style='color: #102216; margin: 0; font-size: 24px; font-weight: 800; letter-spacing: 1px;'>AGIAPURR</h1>
+                                        <p style='color: #102216; margin: 5px 0 0 0; font-size: 14px; opacity: 0.8;'>Distribuidora</p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style='padding: 30px; color: #333333; line-height: 1.6;'>
+                                        <h2 style='color: #111813; margin-top: 0; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px;'>{titulo}</h2>
+                                        {contenidoHtml}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style='background-color: #f1f5f2; padding: 20px; text-align: center; color: #61896f; font-size: 12px;'>
+                                        <p style='margin: 0;'>Este es un mensaje automático generado por el sistema ERP.</p>
+                                        <p style='margin: 5px 0 0 0;'>© {DateTime.Now.Year} AGIAPURR Distribuidora. Todos los derechos reservados.</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </body>
+            </html>";
+        }
 
         public static void EnviarCorreo(string destinatario, string asunto, string cuerpoHtml)
         {
-            if (string.IsNullOrWhiteSpace(destinatario))
-                return;
+            if (string.IsNullOrWhiteSpace(destinatario)) return;
 
             MailMessage mensaje = new MailMessage();
             mensaje.From = new MailAddress(Remitente, NombreRemitente);
@@ -30,157 +67,166 @@ namespace Negocio
                 smtp.EnableSsl = true;
                 smtp.UseDefaultCredentials = false;
                 smtp.Credentials = new NetworkCredential(Remitente, Clave);
-                smtp.Send(mensaje);
-            }
-        }
-
-        // Asegurate de agregar el mail del admin acá arriba junto a tus otras constantes
-        private const string EmailAdministrador = "lucastro1991.lc@gmail.com"; // CAMBIAR POR EL MAIL REAL
-
-        public static void EnviarFactura(Venta venta)
-        {
-            // Validamos que exista la venta y el cliente
-            if (venta == null || venta.Cliente == null || string.IsNullOrEmpty(venta.Cliente.Email))
-                return;
-
-            string asunto;
-            // ACÁ ESTABA EL ERROR: Cambiamos "venta.Cancelada" por "venta.Estado == 'Cancelada'"
-            if (venta.Estado == "Cancelada" && !string.IsNullOrEmpty(venta.NumeroNC))
-                asunto = "Nota de crédito " + venta.NumeroNC;
-            else
-                asunto = "Comprobante de compra " + (venta.NumeroFactura ?? "");
-
-            StringBuilder sb = new StringBuilder();
-
-            sb.Append("<html><body>");
-            sb.Append("<h2>Detalle de la compra</h2>");
-
-            sb.Append("<p>Cliente: " + venta.Cliente.Nombre + "</p>");
-            sb.Append("<p>Fecha: " + venta.Fecha.ToString("dd/MM/yyyy") + "</p>");
-            sb.Append("<p>Método de pago: " + (venta.MetodoPago ?? "") + "</p>");
-            sb.Append("<p>Número de remito: " + (venta.NumeroFactura ?? "") + "</p>");
-
-            sb.Append("<table border='1' cellspacing='0' cellpadding='4'>");
-            sb.Append("<tr>");
-            sb.Append("<th>Producto</th>");
-            sb.Append("<th>Cantidad</th>");
-            sb.Append("<th>Precio unitario</th>");
-            sb.Append("<th>Subtotal</th>");
-            sb.Append("</tr>");
-
-            if (venta.Lineas != null)
-            {
-                foreach (var linea in venta.Lineas)
-                {
-                    sb.Append("<tr>");
-                    sb.Append("<td>" + linea.Producto.Descripcion + "</td>");
-                    sb.Append("<td style='text-align:right;'>" + linea.Cantidad.ToString("N2") + "</td>");
-                    sb.Append("<td style='text-align:right;'>" + linea.PrecioUnitario.ToString("C") + "</td>");
-                    sb.Append("<td style='text-align:right;'>" + linea.Subtotal.ToString("C") + "</td>");
-                    sb.Append("</tr>");
-                }
-            }
-
-            sb.Append("<tr>");
-            sb.Append("<td colspan='3' style='text-align:right; font-weight:bold;'>Total</td>");
-            sb.Append("<td style='text-align:right; font-weight:bold;'>" + venta.Total.ToString("C") + "</td>");
-            sb.Append("</tr>");
-            sb.Append("</table>");
-            sb.Append("<p>Muchas gracias por su compra.</p>");
-            sb.Append("</body></html>");
-
-            // --- LÓGICA DE ENVÍO MÚLTIPLE ---
-            MailMessage mensaje = new MailMessage();
-            mensaje.From = new MailAddress(Remitente, NombreRemitente);
-
-            // 1. Destinatario Principal (El Cliente)
-            mensaje.To.Add(venta.Cliente.Email);
-
-            // 2. Copia (CC) para el Vendedor (Validamos que exista el vendedor y su mail)
-            if (venta.Usuario != null && !string.IsNullOrWhiteSpace(venta.Usuario.Email))
-            {
-                mensaje.CC.Add(venta.Usuario.Email);
-            }
-
-            // 3. Copia Oculta (BCC) para el Administrador (para llevar registro de todo)
-            mensaje.Bcc.Add(EmailAdministrador);
-
-            mensaje.Subject = asunto;
-            mensaje.BodyEncoding = Encoding.UTF8;
-            mensaje.IsBodyHtml = true;
-            mensaje.Body = sb.ToString();
-
-            // Enviar el correo armado
-            using (SmtpClient smtp = new SmtpClient("smtp.gmail.com", 587))
-            {
-                smtp.EnableSsl = true;
-                smtp.UseDefaultCredentials = false;
-                smtp.Credentials = new NetworkCredential(Remitente, Clave);
                 try
                 {
                     smtp.Send(mensaje);
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine("Error enviando email: " + ex.Message);
+                    System.Diagnostics.Debug.WriteLine("Error enviando email base: " + ex.Message);
                 }
+            }
+        }
+
+        public static void EnviarFactura(Venta venta)
+        {
+            if (venta == null || venta.Cliente == null || string.IsNullOrEmpty(venta.Cliente.Email)) return;
+
+            string tipoComprobante = (venta.Estado == "Cancelada" && !string.IsNullOrEmpty(venta.NumeroNC))
+                ? $"Nota de Crédito {venta.NumeroNC}"
+                : $"Factura {venta.NumeroFactura}";
+
+            string asunto = $"Tu comprobante de AGIAPURR - {tipoComprobante}";
+
+            StringBuilder lineasHtml = new StringBuilder();
+            if (venta.Lineas != null)
+            {
+                foreach (var linea in venta.Lineas)
+                {
+                    lineasHtml.Append($@"
+                        <tr>
+                            <td style='padding: 10px; border-bottom: 1px solid #eeeeee;'>{linea.Producto.Descripcion}</td>
+                            <td style='padding: 10px; border-bottom: 1px solid #eeeeee; text-align: center;'>{linea.Cantidad:N2}</td>
+                            <td style='padding: 10px; border-bottom: 1px solid #eeeeee; text-align: right;'>{linea.PrecioUnitario:C}</td>
+                            <td style='padding: 10px; border-bottom: 1px solid #eeeeee; text-align: right; font-weight: bold;'>{linea.Subtotal:C}</td>
+                        </tr>");
+                }
+            }
+
+            string contenido = $@"
+                <p>Hola <strong>{venta.Cliente.Nombre}</strong>,</p>
+                <p>Adjuntamos el detalle de tu reciente operación con nosotros.</p>
+                
+                <table width='100%' style='background-color: #f9f9f9; padding: 15px; border-radius: 6px; margin-bottom: 20px;'>
+                    <tr>
+                        <td><strong>Fecha:</strong> {venta.Fecha:dd/MM/yyyy}</td>
+                        <td><strong>Método de pago:</strong> {venta.MetodoPago ?? "N/A"}</td>
+                    </tr>
+                </table>
+
+                <table width='100%' border='0' cellspacing='0' cellpadding='0' style='margin-bottom: 20px; font-size: 14px;'>
+                    <thead>
+                        <tr>
+                            <th style='background-color: #102216; color: white; padding: 10px; text-align: left; border-radius: 4px 0 0 0;'>Producto</th>
+                            <th style='background-color: #102216; color: white; padding: 10px; text-align: center;'>Cant.</th>
+                            <th style='background-color: #102216; color: white; padding: 10px; text-align: right;'>P. Unitario</th>
+                            <th style='background-color: #102216; color: white; padding: 10px; text-align: right; border-radius: 0 4px 0 0;'>Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {lineasHtml}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan='3' style='padding: 15px 10px; text-align: right; font-weight: bold; font-size: 16px;'>TOTAL:</td>
+                            <td style='padding: 15px 10px; text-align: right; font-weight: bold; font-size: 18px; color: #11d452;'>{venta.Total:C}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+                <p style='text-align: center; font-size: 16px; margin-top: 30px;'>¡Muchas gracias por tu compra!</p>";
+
+            MailMessage mensaje = new MailMessage();
+            mensaje.From = new MailAddress(Remitente, NombreRemitente);
+            mensaje.To.Add(venta.Cliente.Email);
+
+            if (venta.Usuario != null && !string.IsNullOrWhiteSpace(venta.Usuario.Email))
+                mensaje.CC.Add(venta.Usuario.Email);
+
+            mensaje.Bcc.Add(EmailAdministrador);
+            mensaje.Subject = asunto;
+            mensaje.BodyEncoding = Encoding.UTF8;
+            mensaje.IsBodyHtml = true;
+            mensaje.Body = GenerarPlantillaBase($"Detalle de {tipoComprobante}", contenido);
+
+            using (SmtpClient smtp = new SmtpClient("smtp.gmail.com", 587))
+            {
+                smtp.EnableSsl = true;
+                smtp.UseDefaultCredentials = false;
+                smtp.Credentials = new NetworkCredential(Remitente, Clave);
+                try { smtp.Send(mensaje); }
+                catch (Exception ex) { System.Diagnostics.Debug.WriteLine("Error enviando factura: " + ex.Message); }
             }
         }
 
         public static void EnviarBienvenidaCliente(Cliente cliente)
         {
-            if (cliente == null || string.IsNullOrWhiteSpace(cliente.Email))
-                return;
+            if (cliente == null || string.IsNullOrWhiteSpace(cliente.Email)) return;
 
-            string asunto = "Bienvenido a Comercio";
+            string contenido = $@"
+                <p>¡Hola <strong>{cliente.Nombre}</strong>!</p>
+                <p>Te damos una cálida bienvenida a nuestro sistema de clientes exclusivos.</p>
+                <p>A partir de ahora, recibirás de forma automática todos tus comprobantes, facturas y novedades importantes directamente en esta casilla de correo.</p>
+                <div style='text-align: center; margin-top: 30px;'>
+                    <p style='font-size: 16px; font-weight: bold;'>¡Gracias por confiar en AGIAPURR!</p>
+                </div>";
 
-            StringBuilder sb = new StringBuilder();
-            sb.Append("<html><body>");
-            sb.Append("<h2>¡Hola " + cliente.Nombre + "!</h2>");
-            sb.Append("<p>Te damos la bienvenida a nuestro sistema de clientes.</p>");
-            sb.Append("<p>Desde ahora vas a recibir por correo tus comprobantes y novedades importantes.</p>");
-            sb.Append("<p>Muchas gracias por confiar en nosotros.</p>");
-            sb.Append("</body></html>");
-
-            EnviarCorreo(cliente.Email, asunto, sb.ToString());
+            EnviarCorreo(cliente.Email, "¡Bienvenido a AGIAPURR!", GenerarPlantillaBase("¡Alta de Cliente Exitosa!", contenido));
         }
 
-        public static void EnviarBienvenidaUsuario(Usuario usuario)
+        // --- MODIFICADO: AHORA RECIBE LA CONTRASEÑA EN TEXTO PLANO ---
+        public static void EnviarBienvenidaUsuario(Usuario usuario, string passwordPlana)
         {
-            if (usuario == null || string.IsNullOrWhiteSpace(usuario.Email))
-                return;
+            if (usuario == null || string.IsNullOrWhiteSpace(usuario.Email)) return;
 
-            string asunto = "Bienvenido al sistema de gestión";
+            string contenido = $@"
+                <p>¡Hola <strong>{usuario.Nombre}</strong>!</p>
+                <p>El administrador te ha dado de alta en el sistema ERP de la empresa. Ya podés ingresar para comenzar a gestionar ventas y catálogos.</p>
+                
+                <div style='background-color: #f1f5f2; border-left: 4px solid #11d452; padding: 15px; margin: 20px 0;'>
+                    <h3 style='margin-top: 0; color: #102216;'>Tus Credenciales de Acceso:</h3>
+                    <p style='margin: 5px 0;'><strong>Usuario:</strong> {usuario.Username}</p>
+                    <p style='margin: 5px 0;'><strong>Contraseña:</strong> {passwordPlana}</p>
+                </div>
 
-            StringBuilder sb = new StringBuilder();
-            sb.Append("<html><body>");
-            sb.Append("<h2>¡Hola " + usuario.Nombre + "!</h2>");
-            sb.Append("<p>Tu usuario ha sido creado correctamente.</p>");
-            sb.Append("<p>Ya podés iniciar sesión en el sistema y comenzar a operar como vendedor.</p>");
-            sb.Append("<p>Cualquier duda, contactate con el administrador.</p>");
-            sb.Append("</body></html>");
+                <p><em>Por motivos de seguridad, te recomendamos ingresar al sistema y cambiar tu contraseña desde la opción 'Mi Perfil' lo antes posible.</em></p>";
 
-            EnviarCorreo(usuario.Email, asunto, sb.ToString());
+            EnviarCorreo(usuario.Email, "Tus credenciales de acceso", GenerarPlantillaBase("¡Bienvenido al Equipo!", contenido));
         }
 
         public static void EnviarRecuperacionPassword(Usuario usuario, string nuevaPassword)
         {
-            if (usuario == null || string.IsNullOrWhiteSpace(usuario.Email))
-                return;
+            if (usuario == null || string.IsNullOrWhiteSpace(usuario.Email)) return;
 
-            string asunto = "Restablecimiento de contraseña - Comercio";
+            string contenido = $@"
+                <p>Hola <strong>{usuario.Nombre}</strong>,</p>
+                <p>Hemos recibido una solicitud para restablecer tu contraseña en el sistema.</p>
+                
+                <div style='background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0;'>
+                    <p style='margin: 0;'>Tu nueva contraseña temporal es: <strong style='font-size: 18px;'>{nuevaPassword}</strong></p>
+                </div>
 
-            StringBuilder sb = new StringBuilder();
-            sb.Append("<html><body>");
-            sb.Append("<h2>Hola " + usuario.Nombre + "!</h2>");
-            sb.Append("<p>Recibimos una solicitud para restablecer tu contraseña en el sistema de gestión.</p>");
-            sb.Append("<p>Tu nueva contraseña temporal es: <strong>" + nuevaPassword + "</strong></p>");
-            sb.Append("<p>Por seguridad, te recomendamos cambiarla después de iniciar sesión.</p>");
-            sb.Append("<p>Si no fuiste vos quien solicitó este cambio, por favor contactate con el administrador.</p>");
-            sb.Append("<p>Saludos,<br/>Comercio</p>");
-            sb.Append("</body></html>");
+                <p>Te pedimos que inicies sesión con esta clave e inmediatamente te dirijas a la configuración de tu perfil para establecer una nueva contraseña privada.</p>
+                <p style='font-size: 12px; color: #999; mt-3'>Si no solicitaste este cambio, por favor avisale urgentemente al Administrador del sistema.</p>";
 
-            EnviarCorreo(usuario.Email, asunto, sb.ToString());
+            EnviarCorreo(usuario.Email, "Recuperación de Contraseña", GenerarPlantillaBase("Restablecimiento de Clave", contenido));
+        }
+
+        // --- NUEVO: AVISO POR CAMBIO DE CONTRASEÑA MANUAL ---
+        public static void EnviarAvisoCambioPassword(Usuario usuario)
+        {
+            if (usuario == null || string.IsNullOrWhiteSpace(usuario.Email)) return;
+
+            string contenido = $@"
+                <p>Hola <strong>{usuario.Nombre}</strong>,</p>
+                <p>Te enviamos este correo para notificarte que <strong>tu contraseña ha sido modificada con éxito</strong> desde la gestión de tu perfil.</p>
+                <p>Ya podés utilizar tu nueva clave para los próximos inicios de sesión.</p>
+                
+                <div style='background-color: #f8d7da; border-left: 4px solid #dc3545; padding: 15px; margin: 20px 0;'>
+                    <p style='margin: 0; color: #721c24; font-weight: bold;'>⚠️ ¿No fuiste vos?</p>
+                    <p style='margin: 5px 0 0 0; color: #721c24; font-size: 13px;'>Si no realizaste este cambio, tu cuenta podría estar comprometida. Contactate con el Administrador de inmediato.</p>
+                </div>";
+
+            EnviarCorreo(usuario.Email, "Aviso de Seguridad: Cambio de Contraseña", GenerarPlantillaBase("Alerta de Seguridad", contenido));
         }
     }
 }

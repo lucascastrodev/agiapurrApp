@@ -128,6 +128,9 @@ namespace TPC_Equipo20B
 
                 if (actualizado)
                 {
+                    // --- ALERTA DE SEGURIDAD POR CORREO ---
+                    EmailService.EnviarAvisoCambioPassword(usuario);
+
                     // Limpiar campos por seguridad
                     txtPasswordActual.Text = "";
                     txtPasswordNueva.Text = "";
