@@ -19,7 +19,7 @@ namespace Negocio
 
                 if (!string.IsNullOrWhiteSpace(q))
                 {
-                    
+
                     consulta += " AND Nombre LIKE @q";
                 }
 
@@ -82,15 +82,11 @@ namespace Negocio
             {
                 if (categoria.Id == 0)
                 {
-                    datos.setearConsulta(@"
-                        INSERT INTO CATEGORIAS (Nombre)
-                        VALUES (@nombre)");
+                    datos.setearConsulta("INSERT INTO CATEGORIAS (Nombre) VALUES (@nombre)");
                 }
                 else
                 {
-                    datos.setearConsulta(@"
-                        UPDATE CATEGORIAS SET Nombre = @nombre
-                        WHERE Id = @id");
+                    datos.setearConsulta("UPDATE CATEGORIAS SET Nombre = @nombre WHERE Id = @id");
                     datos.setearParametro("@id", categoria.Id);
                 }
 
@@ -103,7 +99,7 @@ namespace Negocio
             }
         }
 
-       
+
         public void Agregar(Categoria categoria)
         {
             Guardar(categoria);

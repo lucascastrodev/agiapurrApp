@@ -1,4 +1,4 @@
-﻿using Dominio;
+using Dominio;
 using Negocio;
 using System;
 using System.Web.UI;
@@ -23,7 +23,6 @@ namespace TPC_Equipo20B
                     CargarCliente(idCliente);
 
                     lblTitulo.InnerText = "Editar Cliente";
-                    // Cambiamos el texto del botón que abre el modal
                     btnProcesarUI.InnerHtml = "<span class=\"material-symbols-outlined fs-5\">save_as</span> Guardar Cambios";
                 }
             }
@@ -43,19 +42,18 @@ namespace TPC_Equipo20B
                 txtDireccion.Text = c.Direccion;
                 txtLocalidad.Text = c.Localidad;
                 txtObservaciones.Text = c.Observaciones;
-                ddlCondicionIVA.SelectedValue = c.CondicionIVA;
+
+                if (!string.IsNullOrEmpty(c.CondicionIVA))
+                    ddlCondicionIVA.SelectedValue = c.CondicionIVA;
+
                 ViewState["idCliente"] = id;
             }
         }
 
         protected void btnGuardar_Click(object sender, EventArgs e)
         {
-            // Cerramos forzosamente el modal de pregunta para que no quede tildado en pantalla
             ScriptManager.RegisterStartupScript(this, this.GetType(), "PopCerrar", "cerrarModalSeguridad();", true);
-
-            lblError.Text = ""; // Limpiamos mensaje de error previo
-
-            // Forzamos la validación (Soluciona el error Page.IsValid)
+            lblError.Text = "";
             Page.Validate();
 
             if (!Page.IsValid)
@@ -67,13 +65,19 @@ namespace TPC_Equipo20B
             Cliente c = new Cliente
             {
                 Nombre = txtNombre.Text.Trim(),
-                Documento = txtDocumento.Text.Trim(),
-                Email = txtEmail.Text.Trim(),
-                Telefono = txtTelefono.Text.Trim(),
-                Direccion = txtDireccion.Text.Trim(),
-                Localidad = txtLocalidad.Text.Trim(),
-                Observaciones = txtObservaciones.Text.Trim(),
-                CondicionIVA = ddlCondicionIVA.SelectedValue,
+
+                // Si están vacíos, los mandamos como nulos para la BD
+                Documento = string.IsNullOrWhiteSpace(txtDocumento.Text) ? null : txtDocumento.Text.Trim(),
+                Email = string.IsNullOrWhiteSpace(txtEmail.Text) ? null : txtEmail.Text.Trim(),
+                Direccion = string.IsNullOrWhiteSpace(txtDireccion.Text) ? null : txtDireccion.Text.Trim(),
+                Localidad = string.IsNullOrWhiteSpace(txtLocalidad.Text) ? null : txtLocalidad.Text.Trim(),
+                CondicionIVA = ddlCondicionIVA.SelectedValue == "Seleccione..." ? null : ddlCondicionIVA.SelectedValue,
+
+                Telefono = txtTelefono.Text.Trim(), // Obligatorio
+
+                // Excepción a la regla: La BD no acepta nulos acá, mandamos cadena vacía ""
+                Observaciones = string.IsNullOrWhiteSpace(txtObservaciones.Text) ? "" : txtObservaciones.Text.Trim(),
+
                 IdUsuarioAlta = (int)Session["UsuarioId"]
             };
 
@@ -84,12 +88,10 @@ namespace TPC_Equipo20B
             {
                 negocio.Guardar(c);
 
-                // Configuramos el mensaje del modal según si es alta o edición
                 lblMensajeExitoModal.Text = c.Id > 0
                     ? "Los datos del cliente han sido actualizados correctamente."
                     : "El nuevo cliente ha sido registrado en el sistema con éxito.";
 
-                // Abrimos el modal de éxito final
                 ScriptManager.RegisterStartupScript(this, this.GetType(), "PopExito", "mostrarModalExito();", true);
             }
             catch (Exception ex)

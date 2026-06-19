@@ -83,20 +83,16 @@ namespace Negocio
             {
                 if (marca.Id == 0)
                 {
-                    datos.setearConsulta(@"
-                        INSERT INTO MARCAS (Nombre)
-                        VALUES (@nombre)");
+                    datos.setearConsulta("INSERT INTO MARCAS (Nombre) VALUES (@nombre)");
                 }
                 else
                 {
-                    datos.setearConsulta(@"
-                        UPDATE MARCAS SET Nombre = @nombre
-                        WHERE Id = @id");
+                    datos.setearConsulta("UPDATE MARCAS SET Nombre = @nombre WHERE Id = @id");
                     datos.setearParametro("@id", marca.Id);
                 }
 
                 datos.setearParametro("@nombre", marca.Nombre);
-                datos.ejecutarAccion();
+                datos.ejecutarAccion(); // Vuelve a ejecutarAccion ordinario
             }
             finally
             {

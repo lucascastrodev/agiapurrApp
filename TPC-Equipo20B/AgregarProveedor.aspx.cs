@@ -24,7 +24,6 @@ namespace TPC_Equipo20B
                     lblTitulo.InnerText = "Editar Proveedor";
                     btnProcesarUI.InnerHtml = "<span class=\"material-symbols-outlined fs-5\">save_as</span> Guardar Cambios";
 
-                    // Mostrar el botón de actualización masiva solo si el proveedor ya existe
                     btnAbrirMasivo.Visible = true;
 
                     var p = _negocio.BuscarPorId(Id);
@@ -39,7 +38,6 @@ namespace TPC_Equipo20B
                         txtLocalidad.Text = p.Localidad;
                         ddlFacturaIVA.SelectedValue = p.VendeConIVA ? "true" : "false";
 
-                        // CARGAMOS LOS IMPUESTOS AL EDITAR
                         txtDescuento.Text = p.DescuentoHabitual.ToString("0.00");
                         txtIVA.Text = p.PorcentajeIVA.ToString("0.00");
                         txtIIBB.Text = p.PorcentajeIIBB.ToString("0.00");
@@ -48,20 +46,13 @@ namespace TPC_Equipo20B
                 }
                 else
                 {
-                    // Ocultar el botón si estamos creando un proveedor nuevo
                     btnAbrirMasivo.Visible = false;
                 }
             }
         }
 
-        protected void cvNombreRazon_ServerValidate(object source, ServerValidateEventArgs args)
-        {
-            args.IsValid = !string.IsNullOrEmpty(txtNombre.Text.Trim()) || !string.IsNullOrEmpty(txtRazonSocial.Text.Trim());
-        }
-
         protected void btnGuardar_Click(object sender, EventArgs e)
         {
-            // Cerramos el modal de pregunta para que no tape el de éxito
             ScriptManager.RegisterStartupScript(this, this.GetType(), "PopCerrar", "cerrarModalSeguridad();", true);
 
             lblError.Text = "";
@@ -77,14 +68,16 @@ namespace TPC_Equipo20B
                     Nombre = txtNombre.Text.Trim(),
                     RazonSocial = txtRazonSocial.Text.Trim(),
                     Documento = txtDocumento.Text.Trim(),
-                    Email = txtEmail.Text.Trim(),
-                    Telefono = txtTelefono.Text.Trim(),
+
+                    // Asignación de Nulos Seguros para la Base de Datos
+                    Email = string.IsNullOrWhiteSpace(txtEmail.Text) ? null : txtEmail.Text.Trim(),
+                    Telefono = string.IsNullOrWhiteSpace(txtTelefono.Text) ? null : txtTelefono.Text.Trim(),
+                    Localidad = string.IsNullOrWhiteSpace(txtLocalidad.Text) ? null : txtLocalidad.Text.Trim(),
+
                     Direccion = txtDireccion.Text.Trim(),
-                    Localidad = txtLocalidad.Text.Trim(),
                     CondicionIVA = ddlFacturaIVA.SelectedItem.Text,
                     VendeConIVA = bool.Parse(ddlFacturaIVA.SelectedValue),
 
-                    // Normalizamos puntos por comas para evitar errores de parseo regional
                     DescuentoHabitual = decimal.Parse(txtDescuento.Text.Replace(".", ",")),
                     PorcentajeIVA = decimal.Parse(txtIVA.Text.Replace(".", ",")),
                     PorcentajeIIBB = decimal.Parse(txtIIBB.Text.Replace(".", ",")),
@@ -110,7 +103,6 @@ namespace TPC_Equipo20B
             Response.Redirect("Proveedores.aspx", false);
         }
 
-        // --- LÓGICA DE ACTUALIZACIÓN MASIVA ---
         protected void btnAplicarMasivo_Click(object sender, EventArgs e)
         {
             Page.Validate("Masivo");
@@ -118,7 +110,6 @@ namespace TPC_Equipo20B
 
             try
             {
-                // Cerramos el modal
                 ScriptManager.RegisterStartupScript(this, this.GetType(), "PopCerrarMasivo", "var modal = bootstrap.Modal.getInstance(document.getElementById('modalDescuentoMasivo')); if(modal) modal.hide();", true);
 
                 string palabra = txtPalabraClave.Text.Trim();
@@ -131,7 +122,6 @@ namespace TPC_Equipo20B
                 lblMensajeExitoModal.Text = $"Se actualizó correctamente el descuento al {nuevoPorcentaje}% para la familia '{palabra}'.";
                 ScriptManager.RegisterStartupScript(this, this.GetType(), "PopExito", "mostrarModalExito();", true);
 
-                // Limpiamos los campos
                 txtPalabraClave.Text = "";
                 txtNuevoDescuentoMasivo.Text = "";
             }

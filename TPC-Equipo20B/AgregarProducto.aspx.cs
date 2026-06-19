@@ -37,7 +37,6 @@ namespace TPC_Equipo20B
                             CargarProveedores(id);
 
                             lblTitulo.InnerText = "Editar Producto";
-                            btnProcesarUI.InnerHtml = "<span class=\"material-symbols-outlined fs-5\">save_as</span> Guardar Cambios";
                         }
                     }
                     else
@@ -46,7 +45,6 @@ namespace TPC_Equipo20B
                         txtPrecioNeto.Text = "0.00";
                         CargarProveedores(null);
                         lblTitulo.InnerText = "Agregar Nuevo Producto";
-                        // Por defecto mostramos ganancia
                         ConfigurarVisibilidadGanancia(true);
                     }
                 }
@@ -57,12 +55,10 @@ namespace TPC_Equipo20B
             }
         }
 
-        // --- NUEVO: EVENTO AL CLICKEAR EL CHECKBOX ---
         protected void chkSel_CheckedChanged(object sender, EventArgs e)
         {
             bool hayProveedorConIva = false;
 
-            // Recorremos la grilla para ver qué se seleccionó
             foreach (GridViewRow row in gvProveedores.Rows)
             {
                 CheckBox chk = (CheckBox)row.FindControl("chkSel");
@@ -70,7 +66,6 @@ namespace TPC_Equipo20B
 
                 if (chk != null && chk.Checked && hdnIva != null)
                 {
-                    // Si encontramos UNO con IVA, la regla de ocultar se activa
                     if (bool.TryParse(hdnIva.Value, out bool vendeConIva) && vendeConIva)
                     {
                         hayProveedorConIva = true;
@@ -79,23 +74,15 @@ namespace TPC_Equipo20B
                 }
             }
 
-            // Si hay proveedor con IVA, OCULTAMOS (false). Si no, MOSTRAMOS (true).
             ConfigurarVisibilidadGanancia(!hayProveedorConIva);
         }
 
-        // --- MÉTODO HELPER PARA OCULTAR/MOSTRAR Y APAGAR VALIDADORES ---
         private void ConfigurarVisibilidadGanancia(bool visible)
         {
             divGanancia.Visible = visible;
-
-            // Importante: Apagamos los validadores para que deje guardar si está oculto
             rfvGanancia.Enabled = visible;
             revGanancia.Enabled = visible;
-
-            if (!visible)
-            {
-                txtGanancia.Text = "0"; // Valor por defecto para que no falle la lógica matemática
-            }
+            if (!visible) txtGanancia.Text = "0";
         }
 
         private void ConfigurarPermisosStock()
@@ -144,7 +131,6 @@ namespace TPC_Equipo20B
                 if (producto.Categoria != null && ddlCategoria.Items.FindByValue(producto.Categoria.Id.ToString()) != null)
                     ddlCategoria.SelectedValue = producto.Categoria.Id.ToString();
 
-                // Lógica inicial: Si el producto ya tiene un proveedor con IVA, ocultamos el campo
                 bool tieneIva = producto.Proveedor != null && producto.Proveedor.VendeConIVA;
                 ConfigurarVisibilidadGanancia(!tieneIva);
             }
@@ -160,11 +146,18 @@ namespace TPC_Equipo20B
 
         protected void btnGuardar_Click(object sender, EventArgs e)
         {
+            // Cerramos forzosamente el modal en el cliente
             ScriptManager.RegisterStartupScript(this, this.GetType(), "PopCerrar", "cerrarModalSeguridad();", true);
 
             pnlMensaje.Visible = false;
+
+            // Ejecutamos validación completa de la página
             Page.Validate();
-            if (!Page.IsValid) return;
+            if (!Page.IsValid)
+            {
+                MostrarMensaje("⚠️ Hay campos inválidos en el formulario. Por favor, revise los errores en rojo.", false);
+                return;
+            }
 
             try
             {
@@ -247,12 +240,6 @@ namespace TPC_Equipo20B
             if (idProd.HasValue)
             {
                 var asociados = new ProductoNegocio().ObtenerProveedoresPorProducto(idProd.Value);
-                // También verificamos si alguno tiene IVA al cargar
-                bool tieneIva = false;
-                ProveedorNegocio pNeg = new ProveedorNegocio();
-                // Nota: ObtenerProveedoresPorProducto solo trae IDs. 
-                // La verificación real de IVA se hizo en CargarDatosProducto usando el objeto completo.
-
                 foreach (GridViewRow row in gvProveedores.Rows)
                 {
                     int idProv = Convert.ToInt32(gvProveedores.DataKeys[row.RowIndex].Value);

@@ -1,27 +1,26 @@
-﻿<%@ Page Title="Agregar Producto" Language="C#" MasterPageFile="~/Site.Master"
-    AutoEventWireup="true" CodeBehind="AgregarProducto.aspx.cs" Inherits="TPC_Equipo20B.AgregarProducto"
-    MaintainScrollPositionOnPostback="true" %>
+﻿<%@ Page Title="Agregar Producto" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" CodeBehind="AgregarProducto.aspx.cs" Inherits="TPC_Equipo20B.AgregarProducto" MaintainScrollPositionOnPostback="true" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="MainContent" runat="server">
 
-    <% if (Request.QueryString["modo"] == "iframe") { %>
-        <style type="text/css">
-            /* Ocultar barra de navegación, header y footer */
-            nav, header, footer, .navbar, .navbar-expand-sm, .navbar-expand-lg, .fixed-top { 
-                display: none !important; 
-                visibility: hidden !important;
-                height: 0 !important;
-            }
-            /* Resetear los márgenes del body para que no quede el hueco blanco arriba */
-            body { 
-                padding-top: 0 !important; 
-                background-color: transparent !important;
-            }
-            form, main {
-                padding-top: 0 !important;
-                margin-top: 0 !important;
-            }
-        </style>
+    <% if (Request.QueryString["modo"] == "iframe")
+        { %>
+    <style type="text/css">
+        nav, header, footer, .navbar, .navbar-expand-sm, .navbar-expand-lg, .fixed-top {
+            display: none !important;
+            visibility: hidden !important;
+            height: 0 !important;
+        }
+
+        body {
+            padding-top: 0 !important;
+            background-color: transparent !important;
+        }
+
+        form, main {
+            padding-top: 0 !important;
+            margin-top: 0 !important;
+        }
+    </style>
     <% } %>
 
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
@@ -95,7 +94,6 @@
             <div class="card-body p-4 p-md-5">
 
                 <div class="row g-5">
-
                     <div class="col-lg-7">
                         <h5 class="fw-bold text-muted mb-4 border-bottom pb-2 fs-6 text-uppercase">Información Principal</h5>
 
@@ -191,12 +189,11 @@
 
                         <div class="form-check form-switch mb-3 p-3 bg-light rounded-3 border d-flex align-items-center gap-3">
                             <input id="chkHabilitado" runat="server" type="checkbox" class="form-check-input m-0 fs-4" checked="checked" />
-                            <label class="form-check-label fw-bold text-dark m-0" for="chkHabilitado" style="cursor: pointer;">
-                                Producto Activo en Catálogo
-                            </label>
+                            <label class="form-check-label fw-bold text-dark m-0" for="chkHabilitado" style="cursor: pointer;">Producto Activo en Catálogo</label>
                         </div>
 
                     </div>
+
                     <div class="col-lg-5">
                         <div class="bg-light p-4 rounded-4 h-100 border">
                             <h5 class="fw-bold text-muted mb-3 fs-6 text-uppercase d-flex align-items-center gap-2">
@@ -204,7 +201,7 @@
                                 Proveedores Asignados
                             </h5>
 
-                            <p class="small text-muted mb-3">Busque y seleccione los proveedores que abastecen este producto.</p>
+                            <p class="small text-muted mb-3">Busque y seleccione proveedores asociados a este producto.</p>
 
                             <div class="input-group mb-3 shadow-sm">
                                 <span class="input-group-text bg-white border-end-0">
@@ -215,21 +212,15 @@
                             </div>
 
                             <div class="proveedores-container shadow-sm">
-                                <asp:GridView ID="gvProveedores" runat="server"
-                                    AutoGenerateColumns="False"
-                                    CssClass="table table-hover align-middle mb-0"
-                                    DataKeyNames="Id" GridLines="None">
+                                <asp:GridView ID="gvProveedores" runat="server" AutoGenerateColumns="False" CssClass="table table-hover align-middle mb-0" DataKeyNames="Id" GridLines="None">
                                     <HeaderStyle CssClass="table-light text-secondary small text-uppercase" />
                                     <Columns>
                                         <asp:TemplateField HeaderText="Sel." ItemStyle-Width="50px" ItemStyle-CssClass="text-center">
                                             <ItemTemplate>
-                                                <asp:CheckBox ID="chkSel" runat="server" CssClass="form-check-input m-0"
-                                                    AutoPostBack="true" OnCheckedChanged="chkSel_CheckedChanged" />
-
+                                                <asp:CheckBox ID="chkSel" runat="server" CssClass="form-check-input m-0" AutoPostBack="true" OnCheckedChanged="chkSel_CheckedChanged" />
                                                 <asp:HiddenField ID="hdnVendeConIVA" runat="server" Value='<%# Eval("VendeConIVA") %>' />
                                             </ItemTemplate>
                                         </asp:TemplateField>
-
                                         <asp:BoundField DataField="Nombre" HeaderText="Empresa Proveedora" ItemStyle-CssClass="fw-medium text-dark" />
                                         <asp:BoundField DataField="Telefono" HeaderText="Teléfono" ItemStyle-CssClass="text-muted small" />
                                     </Columns>
@@ -241,11 +232,9 @@
             </div>
 
             <div class="card-footer bg-white p-4 border-top rounded-bottom-4 d-flex justify-content-end gap-3">
-                <button type="button" class="btn btn-outline-secondary px-4 fw-bold" data-bs-toggle="modal" data-bs-target="#modalCancelar">
-                    Cancelar
-                </button>
+                <button type="button" class="btn btn-outline-secondary px-4 fw-bold" data-bs-toggle="modal" data-bs-target="#modalCancelar">Cancelar</button>
 
-                <button type="button" id="btnProcesarUI" runat="server" class="btn btn-success-custom px-4 d-flex align-items-center gap-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalSeguridadGuardar">
+                <button type="button" class="btn btn-success-custom px-4 d-flex align-items-center gap-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalSeguridadGuardar">
                     <span class="material-symbols-outlined fs-5">save</span> Guardar Producto
                 </button>
             </div>
@@ -259,10 +248,10 @@
                 <div class="modal-body text-center pt-5 pb-4 px-4">
                     <span class="material-symbols-outlined text-warning mb-3" style="font-size: 4rem;">warning</span>
                     <h4 class="fw-bold text-dark">¿Cancelar registro?</h4>
-                    <p class="text-muted">Si cancelas ahora, se perderán todos los datos que hayas ingresado sobre este producto.</p>
+                    <p class="text-muted">Si cancelas ahora, se perderán todos los datos.</p>
                 </div>
                 <div class="modal-footer bg-light justify-content-center border-top-0 rounded-bottom-4 py-3">
-                    <button type="button" class="btn btn-outline-secondary px-4 fw-bold" data-bs-dismiss="modal">Volver a la edición</button>
+                    <button type="button" class="btn btn-outline-secondary px-4 fw-bold" data-bs-dismiss="modal">Volver</button>
                     <asp:Button ID="btnConfirmarCancelar" runat="server" Text="Sí, cancelar y salir" CssClass="btn btn-danger px-4 fw-bold" OnClick="btnCancelar_Click" CausesValidation="false" />
                 </div>
             </div>
@@ -282,25 +271,23 @@
                 </div>
                 <div class="modal-footer bg-light justify-content-center border-top-0 rounded-bottom-4 py-3 gap-2">
                     <button type="button" class="btn btn-outline-secondary px-4 fw-bold" data-bs-dismiss="modal">Revisar de nuevo</button>
-
                     <asp:Button ID="btnGuardarDefinitivo" runat="server" Text="Sí, guardar ahora" CssClass="btn btn-success-custom px-4 fw-bold" OnClick="btnGuardar_Click" CausesValidation="false" />
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="modal fade" id="modalExito" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal fade" id="modalExito" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow rounded-4">
                 <div class="modal-body text-center pt-5 pb-4 px-4">
                     <span class="material-symbols-outlined text-success mb-3" style="font-size: 4rem;">check_circle</span>
                     <h4 class="fw-bold text-dark">¡Operación Exitosa!</h4>
                     <p class="text-muted">
-                        <asp:Label ID="lblMensajeExitoModal" runat="server"></asp:Label>
-                    </p>
+                        <asp:Label ID="lblMensajeExitoModal" runat="server"></asp:Label></p>
                 </div>
                 <div class="modal-footer bg-light justify-content-center border-top-0 rounded-bottom-4 py-3">
-                    <a href="Productos.aspx" class="btn btn-success-custom px-5 fw-bold">Ir al Listado de Productos</a>
+                    <a href="Productos.aspx" class="btn btn-success-custom px-5 fw-bold">Ir al Listado</a>
                 </div>
             </div>
         </div>
@@ -308,54 +295,21 @@
 
     <script>
         function mostrarModalExito() {
-            var modalSeguridad = bootstrap.Modal.getInstance(document.getElementById('modalSeguridadGuardar'));
-            if (modalSeguridad) modalSeguridad.hide();
-
             var myModal = new bootstrap.Modal(document.getElementById('modalExito'));
             myModal.show();
         }
 
         function cerrarModalSeguridad() {
-            var myModal = bootstrap.Modal.getInstance(document.getElementById('modalSeguridadGuardar'));
-            if (myModal) myModal.hide();
+            var el = document.getElementById('modalSeguridadGuardar');
+            var modal = bootstrap.Modal.getInstance(el);
+            if (modal) {
+                modal.hide();
+            }
+            // Limpieza de fondos grises
+            document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+            document.body.classList.remove('modal-open');
+            document.body.style.paddingRight = '';
+            document.body.style.overflow = 'auto';
         }
-
-        document.addEventListener('DOMContentLoaded', function () {
-            const campos = [
-                '<%= txtDescripcion.ClientID %>',
-                '<%= txtSKU.ClientID %>',
-                '<%= ddlMarca.ClientID %>',
-                '<%= ddlCategoria.ClientID %>',
-                '<%= txtStockMinimo.ClientID %>',
-                '<%= txtStockActual.ClientID %>',
-                '<%= txtPrecioNeto.ClientID %>',
-                '<%= txtGanancia.ClientID %>'
-            ];
-
-            const btnProcesarUI = document.getElementById('<%= btnProcesarUI.ClientID %>');
-
-            const primero = document.getElementById('<%= txtDescripcion.ClientID %>');
-            if (primero) primero.focus();
-
-            campos.forEach((id, index) => {
-                const input = document.getElementById(id);
-                if (!input) return;
-
-                input.addEventListener('keydown', function (e) {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                        const siguienteId = campos[index + 1];
-                        const siguiente = siguienteId ? document.getElementById(siguienteId) : null;
-
-                        if (siguiente) {
-                            siguiente.focus();
-                        } else {
-                            if (btnProcesarUI) btnProcesarUI.click();
-                        }
-                    }
-                });
-            });
-        });
     </script>
-
 </asp:Content>

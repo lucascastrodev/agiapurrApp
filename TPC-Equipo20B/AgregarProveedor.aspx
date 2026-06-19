@@ -4,14 +4,6 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
 
-    <script type="text/javascript">
-        function validarNombreORazon(source, args) {
-            var nombre = document.getElementById('<%= txtNombre.ClientID %>').value;
-            var razon = document.getElementById('<%= txtRazonSocial.ClientID %>').value;
-            args.IsValid = (nombre.trim() !== "" || razon.trim() !== "");
-        }
-    </script>
-
     <style>
         .validator {
             color: #dc3545;
@@ -29,7 +21,6 @@
             font-weight: 500;
         }
 
-        /* Se agregó padding-bottom para que los errores flotantes no pisen la fila siguiente */
         .col-md-6, .col-md-3 {
             position: relative;
             margin-bottom: 1.5rem;
@@ -86,7 +77,7 @@
                             </span>
                             <asp:TextBox ID="txtNombre" runat="server" CssClass="form-control border-start-0" placeholder="Nombre comercial" MaxLength="100" />
                         </div>
-                        <asp:CustomValidator ID="cvNombreRazon" runat="server" ErrorMessage="Debe completar Nombre o Razón Social" ClientValidationFunction="validarNombreORazon" OnServerValidate="cvNombreRazon_ServerValidate" ValidationGroup="GuardarProveedor" CssClass="error-flotante" Display="Dynamic" />
+                        <asp:RequiredFieldValidator ID="rfvNombre" runat="server" ControlToValidate="txtNombre" ErrorMessage="El nombre es obligatorio" ValidationGroup="GuardarProveedor" CssClass="error-flotante" Display="Dynamic" />
                     </div>
 
                     <div class="col-md-6">
@@ -97,6 +88,7 @@
                             </span>
                             <asp:TextBox ID="txtRazonSocial" runat="server" CssClass="form-control border-start-0" placeholder="Ej: Distribuidora Norte S.A." MaxLength="200" />
                         </div>
+                        <asp:RequiredFieldValidator ID="rfvRazonSocial" runat="server" ControlToValidate="txtRazonSocial" ErrorMessage="La razón social es obligatoria" ValidationGroup="GuardarProveedor" CssClass="error-flotante" Display="Dynamic" />
                     </div>
 
                     <div class="col-md-6">
@@ -127,28 +119,6 @@
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label">Correo Electrónico *</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light border-end-0">
-                                <span class="material-symbols-outlined text-muted">mail</span>
-                            </span>
-                            <asp:TextBox ID="txtEmail" runat="server" CssClass="form-control border-start-0" TextMode="Email" placeholder="correo@proveedor.com" MaxLength="100" />
-                        </div>
-                        <asp:RequiredFieldValidator ID="rfvEmail" runat="server" ControlToValidate="txtEmail" ErrorMessage="El correo es obligatorio" ValidationGroup="GuardarProveedor" CssClass="error-flotante" Display="Dynamic" />
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label">Teléfono *</label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light border-end-0">
-                                <span class="material-symbols-outlined text-muted">phone</span>
-                            </span>
-                            <asp:TextBox ID="txtTelefono" runat="server" CssClass="form-control border-start-0" placeholder="Ej: 011-4321-5678" MaxLength="50" />
-                        </div>
-                        <asp:RequiredFieldValidator ID="rfvTelefono" runat="server" ControlToValidate="txtTelefono" ErrorMessage="El teléfono es obligatorio" ValidationGroup="GuardarProveedor" CssClass="error-flotante" Display="Dynamic" />
-                    </div>
-
-                    <div class="col-md-6">
                         <label class="form-label">Dirección *</label>
                         <div class="input-group">
                             <span class="input-group-text bg-light border-end-0">
@@ -160,14 +130,33 @@
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label">Localidad *</label>
+                        <label class="form-label">Correo Electrónico</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0">
+                                <span class="material-symbols-outlined text-muted">mail</span>
+                            </span>
+                            <asp:TextBox ID="txtEmail" runat="server" CssClass="form-control border-start-0" TextMode="Email" placeholder="correo@proveedor.com" MaxLength="100" />
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Teléfono</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0">
+                                <span class="material-symbols-outlined text-muted">phone</span>
+                            </span>
+                            <asp:TextBox ID="txtTelefono" runat="server" CssClass="form-control border-start-0" placeholder="Ej: 011-4321-5678" MaxLength="50" />
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Localidad</label>
                         <div class="input-group">
                             <span class="input-group-text bg-light border-end-0">
                                 <span class="material-symbols-outlined text-muted">location_city</span>
                             </span>
                             <asp:TextBox ID="txtLocalidad" runat="server" CssClass="form-control border-start-0" placeholder="Ej: CABA" MaxLength="100" />
                         </div>
-                        <asp:RequiredFieldValidator ID="rfvLocalidad" runat="server" ControlToValidate="txtLocalidad" ErrorMessage="La localidad es obligatoria" ValidationGroup="GuardarProveedor" CssClass="error-flotante" Display="Dynamic" />
                     </div>
 
                     <div class="col-12 mt-4 mb-2 d-flex justify-content-between align-items-center border-bottom pb-2" style="padding-bottom: 0 !important; margin-bottom: 1rem !important;">
@@ -179,7 +168,7 @@
                     </div>
 
                     <div class="col-md-3">
-                        <label class="form-label">Desc. Habitual (%)</label>
+                        <label class="form-label">Desc. Habitual (%) *</label>
                         <div class="input-group">
                             <span class="input-group-text bg-light border-end-0">
                                 <span class="material-symbols-outlined text-muted" style="font-size: 18px;">percent</span>
@@ -191,7 +180,7 @@
                     </div>
 
                     <div class="col-md-3">
-                        <label class="form-label">Porcentaje IVA (%)</label>
+                        <label class="form-label">Porcentaje IVA (%) *</label>
                         <div class="input-group">
                             <span class="input-group-text bg-light border-end-0">
                                 <span class="material-symbols-outlined text-muted" style="font-size: 18px;">account_balance</span>
@@ -203,7 +192,7 @@
                     </div>
 
                     <div class="col-md-3">
-                        <label class="form-label">Porcentaje IIBB (%)</label>
+                        <label class="form-label">Porcentaje IIBB (%) *</label>
                         <div class="input-group">
                             <span class="input-group-text bg-light border-end-0">
                                 <span class="material-symbols-outlined text-muted" style="font-size: 18px;">receipt</span>
@@ -215,7 +204,7 @@
                     </div>
 
                     <div class="col-md-3">
-                        <label class="form-label">Percepciones (%)</label>
+                        <label class="form-label">Percepciones (%) *</label>
                         <div class="input-group">
                             <span class="input-group-text bg-light border-end-0">
                                 <span class="material-symbols-outlined text-muted" style="font-size: 18px;">payments</span>

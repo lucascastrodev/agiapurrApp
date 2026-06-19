@@ -1,5 +1,4 @@
-﻿<%@ Page Title="Agregar Cliente" Language="C#" MasterPageFile="~/Site.Master"
-    AutoEventWireup="true" CodeBehind="AgregarCliente.aspx.cs" Inherits="TPC_Equipo20B.AgregarCliente" %>
+<%@ Page Title="Agregar Cliente" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" CodeBehind="AgregarCliente.aspx.cs" Inherits="TPC_Equipo20B.AgregarCliente" %>
 
 <asp:Content ID="Content1" ContentPlaceHolderID="MainContent" runat="server">
 
@@ -69,27 +68,25 @@
                     </div>
 
                     <div class="col-md-6">
-                        <label for="txtDocumento" class="form-label">Documento / CUIT *</label>
+                        <label for="txtDocumento" class="form-label">Documento / CUIT</label>
                         <div class="input-group">
                             <span class="input-group-text bg-light border-end-0">
                                 <span class="material-symbols-outlined text-muted">credit_card</span>
                             </span>
                             <asp:TextBox ID="txtDocumento" runat="server" CssClass="form-control border-start-0" placeholder="Ej: 30123456789" />
                         </div>
-                        <asp:RequiredFieldValidator ErrorMessage="Ingrese documento del cliente" ControlToValidate="txtDocumento" runat="server" CssClass="validator" Display="Dynamic" />
                         <asp:RegularExpressionValidator ID="revSoloNumeros" runat="server" ControlToValidate="txtDocumento" ErrorMessage="Este campo solo acepta números." CssClass="validator" Display="Dynamic" ValidationExpression="^\d+$" />
                         <asp:Label ID="lblError" runat="server" CssClass="text-danger fw-bold d-block mt-1"></asp:Label>
                     </div>
 
                     <div class="col-md-6">
-                        <label for="txtEmail" class="form-label">Correo Electrónico *</label>
+                        <label for="txtEmail" class="form-label">Correo Electrónico</label>
                         <div class="input-group">
                             <span class="input-group-text bg-light border-end-0">
                                 <span class="material-symbols-outlined text-muted">mail</span>
                             </span>
                             <asp:TextBox ID="txtEmail" runat="server" TextMode="Email" CssClass="form-control border-start-0" placeholder="correo@cliente.com" />
                         </div>
-                        <asp:RequiredFieldValidator ID="rfvEmail" ErrorMessage="Ingresar un Mail" ControlToValidate="txtEmail" runat="server" CssClass="validator" Display="Dynamic" />
                         <asp:RegularExpressionValidator ID="revEmail" runat="server" ControlToValidate="txtEmail" ErrorMessage="Formato de email no válido." CssClass="validator" Display="Dynamic" SetFocusOnError="true" ValidationExpression="\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*" />
                     </div>
 
@@ -101,34 +98,32 @@
                             </span>
                             <asp:TextBox ID="txtTelefono" runat="server" CssClass="form-control border-start-0" placeholder="Ej: 011-4321-5678" />
                         </div>
-                        <asp:RequiredFieldValidator ID="rfvTelefono" ErrorMessage="Ingresa Telefono del cliente" ControlToValidate="txtTelefono" runat="server" CssClass="validator" Display="Dynamic" />
+                        <asp:RequiredFieldValidator ID="rfvTelefono" ErrorMessage="Ingresa Teléfono del cliente" ControlToValidate="txtTelefono" runat="server" CssClass="validator" Display="Dynamic" />
                         <asp:RegularExpressionValidator ID="revTelefono" runat="server" ControlToValidate="txtTelefono" ErrorMessage="Solo números y guiones." CssClass="validator" Display="Dynamic" SetFocusOnError="true" ValidationExpression="^[\d-]+$" />
                     </div>
 
                     <div class="col-md-6">
-                        <label for="txtDireccion" class="form-label">Dirección *</label>
+                        <label for="txtDireccion" class="form-label">Dirección</label>
                         <div class="input-group">
                             <span class="input-group-text bg-light border-end-0">
                                 <span class="material-symbols-outlined text-muted">home</span>
                             </span>
                             <asp:TextBox ID="txtDireccion" runat="server" CssClass="form-control border-start-0" placeholder="Ej: Av. Belgrano 1234" />
                         </div>
-                        <asp:RequiredFieldValidator ErrorMessage="Ingresar dirección del cliente" ControlToValidate="txtDireccion" runat="server" CssClass="validator" Display="Dynamic" />
                     </div>
 
                     <div class="col-md-6">
-                        <label for="txtLocalidad" class="form-label">Localidad *</label>
+                        <label for="txtLocalidad" class="form-label">Localidad</label>
                         <div class="input-group">
                             <span class="input-group-text bg-light border-end-0">
                                 <span class="material-symbols-outlined text-muted">location_city</span>
                             </span>
                             <asp:TextBox ID="txtLocalidad" runat="server" CssClass="form-control border-start-0" placeholder="Ej: CABA" />
                         </div>
-                        <asp:RequiredFieldValidator ErrorMessage="Ingresar localidad del cliente" ControlToValidate="txtLocalidad" runat="server" CssClass="validator" Display="Dynamic" />
                     </div>
 
                     <div class="col-md-6">
-                        <label for="ddlCondicionIVA" class="form-label">Condición IVA *</label>
+                        <label for="ddlCondicionIVA" class="form-label">Condición IVA</label>
                         <div class="input-group">
                             <span class="input-group-text bg-light border-end-0">
                                 <span class="material-symbols-outlined text-muted">account_balance</span>
@@ -141,18 +136,16 @@
                                 <asp:ListItem Text="Exento" />
                             </asp:DropDownList>
                         </div>
-                        <asp:RequiredFieldValidator ErrorMessage="Seleccione condición IVA" CssClass="validator" ControlToValidate="ddlCondicionIVA" runat="server" InitialValue="Seleccione..." Display="Dynamic" />
                     </div>
 
                     <div class="col-12 mt-4 pt-2 border-top">
-                        <label for="txtObservaciones" class="form-label">Entre Calles / Observaciones *</label>
+                        <label for="txtObservaciones" class="form-label">Entre Calles / Observaciones</label>
                         <div class="input-group">
                             <span class="input-group-text bg-light border-end-0 align-items-start pt-2">
                                 <span class="material-symbols-outlined text-muted">map</span>
                             </span>
-                            <asp:TextBox ID="txtObservaciones" runat="server" CssClass="form-control border-start-0" TextMode="MultiLine" Rows="3" placeholder="Ej: Entre San Martín y Belgrano. Casa con portón negro." />
+                            <asp:TextBox ID="txtObservaciones" runat="server" CssClass="form-control border-start-0" TextMode="MultiLine" Rows="3" placeholder="Ej: Entre San Martin y Belgrano. Casa con porton negro." />
                         </div>
-                        <asp:RequiredFieldValidator ErrorMessage="Es obligatorio ingresar indicaciones o entre calles para el envío" ControlToValidate="txtObservaciones" runat="server" CssClass="validator" Display="Dynamic" />
                     </div>
 
                 </div>
@@ -195,11 +188,10 @@
                 <div class="modal-body text-center pt-0 pb-4 px-4">
                     <span class="material-symbols-outlined text-success mb-3" style="font-size: 4rem;">help</span>
                     <h4 class="fw-bold text-dark">¿Guardar cliente?</h4>
-                    <p class="text-muted">Por favor, verificá que el documento y la dirección sean correctos antes de confirmar el registro.</p>
+                    <p class="text-muted">Por favor, verificá que los datos de contacto sean correctos antes de confirmar el registro.</p>
                 </div>
                 <div class="modal-footer bg-light justify-content-center border-top-0 rounded-bottom-4 py-3 gap-2">
                     <button type="button" class="btn btn-outline-secondary px-4 fw-bold" data-bs-dismiss="modal">Revisar de nuevo</button>
-
                     <asp:Button ID="btnGuardarDefinitivo" runat="server" Text="Sí, guardar ahora" CssClass="btn btn-success-custom px-4 fw-bold" OnClick="btnGuardar_Click" CausesValidation="false" />
                 </div>
             </div>
@@ -226,15 +218,15 @@
     <script>
         function mostrarModalExito() {
             var modalSeguridad = bootstrap.Modal.getInstance(document.getElementById('modalSeguridadGuardar'));
-            if(modalSeguridad) modalSeguridad.hide();
+            if (modalSeguridad) modalSeguridad.hide();
 
             var myModal = new bootstrap.Modal(document.getElementById('modalExito'));
             myModal.show();
         }
-        
+
         function cerrarModalSeguridad() {
-             var myModal = bootstrap.Modal.getInstance(document.getElementById('modalSeguridadGuardar'));
-             if(myModal) myModal.hide();
+            var myModal = bootstrap.Modal.getInstance(document.getElementById('modalSeguridadGuardar'));
+            if (myModal) myModal.hide();
         }
     </script>
 

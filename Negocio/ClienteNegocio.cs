@@ -157,7 +157,6 @@ namespace Negocio
 
                 if (esNuevo)
                 {
-                    // --- INYECTADO OBSERVACIONES ---
                     datos.setearConsulta(@"
                 INSERT INTO Clientes 
                 (Nombre, Documento, Email, Telefono, Direccion, Localidad, Observaciones, CondicionIVA, Habilitado, IdUsuarioAlta)
@@ -167,25 +166,23 @@ namespace Negocio
                 }
                 else
                 {
-                    // --- INYECTADO OBSERVACIONES ---
                     datos.setearConsulta(@"
                 UPDATE Clientes SET
                 Nombre=@nom, Documento=@doc, Email=@email, Telefono=@tel, Direccion=@dir, 
                 Localidad=@loc, Observaciones=@obs, CondicionIVA=@iva, Habilitado=@hab
                 WHERE Id=@id
             ");
-
                     datos.setearParametro("@id", c.Id);
                 }
 
                 datos.setearParametro("@nom", c.Nombre);
-                datos.setearParametro("@doc", c.Documento);
-                datos.setearParametro("@email", c.Email);
+                datos.setearParametro("@doc", (object)c.Documento ?? DBNull.Value);
+                datos.setearParametro("@email", (object)c.Email ?? DBNull.Value);
                 datos.setearParametro("@tel", c.Telefono);
-                datos.setearParametro("@dir", c.Direccion);
-                datos.setearParametro("@loc", c.Localidad);
-                datos.setearParametro("@obs", c.Observaciones); // NUEVO
-                datos.setearParametro("@iva", c.CondicionIVA);
+                datos.setearParametro("@dir", (object)c.Direccion ?? DBNull.Value);
+                datos.setearParametro("@loc", (object)c.Localidad ?? DBNull.Value);
+                datos.setearParametro("@obs", c.Observaciones ?? ""); // Caída segura para el No NULL
+                datos.setearParametro("@iva", (object)c.CondicionIVA ?? DBNull.Value);
                 datos.setearParametro("@hab", c.Habilitado);
 
                 if (esNuevo)
@@ -193,7 +190,7 @@ namespace Negocio
 
                 datos.ejecutarAccion();
 
-
+                // Si es un alta nueva Y además tiene email (ya que ahora es opcional), mandamos correo
                 if (esNuevo && !string.IsNullOrWhiteSpace(c.Email))
                 {
                     EmailService.EnviarBienvenidaCliente(c);
@@ -201,7 +198,6 @@ namespace Negocio
             }
             catch (SqlException ex)
             {
-                // Error 2601 o 2627 = violación UNIQUE
                 if (ex.Number == 2601 || ex.Number == 2627)
                 {
                     throw new Exception("El documento ingresado ya existe. Por favor verifique los datos.");

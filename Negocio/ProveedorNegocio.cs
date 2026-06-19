@@ -48,7 +48,6 @@ namespace Negocio
                         Activo = datos.Lector["Activo"] != DBNull.Value && (bool)datos.Lector["Activo"],
                         VendeConIVA = datos.Lector["VendeConIVA"] != DBNull.Value && (bool)datos.Lector["VendeConIVA"],
 
-                        // Nuevos campos impositivos
                         DescuentoHabitual = datos.Lector["DescuentoHabitual"] != DBNull.Value ? (decimal)datos.Lector["DescuentoHabitual"] : 0,
                         PorcentajeIVA = datos.Lector["PorcentajeIVA"] != DBNull.Value ? (decimal)datos.Lector["PorcentajeIVA"] : 0,
                         PorcentajeIIBB = datos.Lector["PorcentajeIIBB"] != DBNull.Value ? (decimal)datos.Lector["PorcentajeIIBB"] : 0,
@@ -120,22 +119,26 @@ namespace Negocio
             return ObtenerPorId(id);
         }
 
-        public void Guardar(Proveedor p)
+        public int Guardar(Proveedor p)
         {
             var datos = new AccesoDatos();
 
             try
             {
-                var existente = BuscarPorCuit(p.Documento);
-
-                if (existente != null && existente.Id != p.Id)
+                // Validación para evitar CUITs duplicados en proveedores activos
+                if (!string.IsNullOrWhiteSpace(p.Documento))
                 {
-                    if (existente.Activo)
+                    var existente = BuscarPorCuit(p.Documento);
+                    if (existente != null && existente.Id != p.Id)
                     {
-                        throw new Exception("Ya existe un proveedor activo con este CUIT.");
+                        if (existente.Activo)
+                        {
+                            throw new Exception("Ya existe un proveedor activo con este CUIT.");
+                        }
                     }
                 }
 
+                // 1. PRIMERO SETEAMOS LA CONSULTA
                 if (p.Id == 0)
                 {
                     datos.setearConsulta(@"
@@ -144,7 +147,8 @@ namespace Negocio
                      DescuentoHabitual, PorcentajeIVA, PorcentajeIIBB, PorcentajePercepcion)
                 VALUES
                     (@nom, @razon, @doc, @mail, @tel, @dir, @loc, @iva, 1, @vendeIva,
-                     @descHab, @porcIva, @porcIibb, @porcPerc)");
+                     @descHab, @porcIva, @porcIibb, @porcPerc);
+                SELECT SCOPE_IDENTITY();");
                 }
                 else
                 {
@@ -168,7 +172,8 @@ namespace Negocio
                     datos.setearParametro("@id", p.Id);
                 }
 
-                datos.setearParametro("@nom", p.Nombre);
+                // 2. DESPUÉS CARGAMOS LOS PARÁMETROS
+                datos.setearParametro("@nom", (object)p.Nombre ?? DBNull.Value);
                 datos.setearParametro("@razon", p.RazonSocial);
                 datos.setearParametro("@doc", (object)p.Documento ?? DBNull.Value);
                 datos.setearParametro("@mail", (object)p.Email ?? DBNull.Value);
@@ -178,13 +183,24 @@ namespace Negocio
                 datos.setearParametro("@iva", (object)p.CondicionIVA ?? DBNull.Value);
                 datos.setearParametro("@vendeIva", p.VendeConIVA);
 
-                // Parámetros impositivos
                 datos.setearParametro("@descHab", p.DescuentoHabitual);
                 datos.setearParametro("@porcIva", p.PorcentajeIVA);
                 datos.setearParametro("@porcIibb", p.PorcentajeIIBB);
                 datos.setearParametro("@porcPerc", p.PorcentajePercepcion);
 
-                datos.ejecutarAccion();
+                // 3. FINALMENTE EJECUTAMOS
+                if (p.Id == 0)
+                {
+                    // Al ser un INSERT, usamos EjecutarScalar para obtener el ID generado
+                    int nuevoId = Convert.ToInt32(datos.EjecutarScalar());
+                    return nuevoId;
+                }
+                else
+                {
+                    // Al ser un UPDATE, solo ejecutamos la acción
+                    datos.ejecutarAccion();
+                    return p.Id;
+                }
             }
             finally
             {
@@ -258,13 +274,13 @@ namespace Negocio
             var datos = new AccesoDatos();
             try
             {
-                // Limpiamos el query para evitar el SELECT * mezclado con columnas sueltas
                 datos.setearConsulta(@"
                     SELECT Id, Nombre, RazonSocial, Documento, Email, Telefono, 
                            Direccion, Localidad, CondicionIVA, Activo, VendeConIVA,
                            DescuentoHabitual, PorcentajeIVA, PorcentajeIIBB, PorcentajePercepcion 
                     FROM PROVEEDORES 
                     WHERE Documento = @cuit");
+
                 datos.setearParametro("@cuit", cuit);
                 datos.ejecutarLectura();
 

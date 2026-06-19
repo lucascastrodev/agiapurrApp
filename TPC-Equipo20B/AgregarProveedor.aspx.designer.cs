@@ -33,13 +33,13 @@ namespace TPC_Equipo20B
         protected global::System.Web.UI.WebControls.TextBox txtNombre;
 
         /// <summary>
-        /// Control cvNombreRazon.
+        /// Control rfvNombre.
         /// </summary>
         /// <remarks>
         /// Campo generado automáticamente.
         /// Para modificarlo, mueva la declaración del campo del archivo del diseñador al archivo de código subyacente.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.CustomValidator cvNombreRazon;
+        protected global::System.Web.UI.WebControls.RequiredFieldValidator rfvNombre;
 
         /// <summary>
         /// Control txtRazonSocial.
@@ -49,6 +49,15 @@ namespace TPC_Equipo20B
         /// Para modificarlo, mueva la declaración del campo del archivo del diseñador al archivo de código subyacente.
         /// </remarks>
         protected global::System.Web.UI.WebControls.TextBox txtRazonSocial;
+
+        /// <summary>
+        /// Control rfvRazonSocial.
+        /// </summary>
+        /// <remarks>
+        /// Campo generado automáticamente.
+        /// Para modificarlo, mueva la declaración del campo del archivo del diseñador al archivo de código subyacente.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.RequiredFieldValidator rfvRazonSocial;
 
         /// <summary>
         /// Control txtDocumento.
@@ -96,42 +105,6 @@ namespace TPC_Equipo20B
         protected global::System.Web.UI.WebControls.RequiredFieldValidator rfvFacturaIVA;
 
         /// <summary>
-        /// Control txtEmail.
-        /// </summary>
-        /// <remarks>
-        /// Campo generado automáticamente.
-        /// Para modificarlo, mueva la declaración del campo del archivo del diseñador al archivo de código subyacente.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.TextBox txtEmail;
-
-        /// <summary>
-        /// Control rfvEmail.
-        /// </summary>
-        /// <remarks>
-        /// Campo generado automáticamente.
-        /// Para modificarlo, mueva la declaración del campo del archivo del diseñador al archivo de código subyacente.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.RequiredFieldValidator rfvEmail;
-
-        /// <summary>
-        /// Control txtTelefono.
-        /// </summary>
-        /// <remarks>
-        /// Campo generado automáticamente.
-        /// Para modificarlo, mueva la declaración del campo del archivo del diseñador al archivo de código subyacente.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.TextBox txtTelefono;
-
-        /// <summary>
-        /// Control rfvTelefono.
-        /// </summary>
-        /// <remarks>
-        /// Campo generado automáticamente.
-        /// Para modificarlo, mueva la declaración del campo del archivo del diseñador al archivo de código subyacente.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.RequiredFieldValidator rfvTelefono;
-
-        /// <summary>
         /// Control txtDireccion.
         /// </summary>
         /// <remarks>
@@ -150,6 +123,24 @@ namespace TPC_Equipo20B
         protected global::System.Web.UI.WebControls.RequiredFieldValidator rfvDireccion;
 
         /// <summary>
+        /// Control txtEmail.
+        /// </summary>
+        /// <remarks>
+        /// Campo generado automáticamente.
+        /// Para modificarlo, mueva la declaración del campo del archivo del diseñador al archivo de código subyacente.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.TextBox txtEmail;
+
+        /// <summary>
+        /// Control txtTelefono.
+        /// </summary>
+        /// <remarks>
+        /// Campo generado automáticamente.
+        /// Para modificarlo, mueva la declaración del campo del archivo del diseñador al archivo de código subyacente.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.TextBox txtTelefono;
+
+        /// <summary>
         /// Control txtLocalidad.
         /// </summary>
         /// <remarks>
@@ -157,15 +148,6 @@ namespace TPC_Equipo20B
         /// Para modificarlo, mueva la declaración del campo del archivo del diseñador al archivo de código subyacente.
         /// </remarks>
         protected global::System.Web.UI.WebControls.TextBox txtLocalidad;
-
-        /// <summary>
-        /// Control rfvLocalidad.
-        /// </summary>
-        /// <remarks>
-        /// Campo generado automáticamente.
-        /// Para modificarlo, mueva la declaración del campo del archivo del diseñador al archivo de código subyacente.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.RequiredFieldValidator rfvLocalidad;
 
         /// <summary>
         /// Control btnAbrirMasivo.
