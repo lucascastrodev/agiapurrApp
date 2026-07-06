@@ -182,6 +182,32 @@ namespace Negocio
             }
         }
 
+        public string RestablecerPasswordDesdeAdmin(int idUsuario)
+        {
+            Usuario usuario = ObtenerUsuarioPorId(idUsuario);
+            if (usuario == null)
+                throw new Exception("El usuario no existe.");
+
+            string claveTemporal = Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
+
+            CambiarPassword(idUsuario, claveTemporal);
+
+            if (!string.IsNullOrWhiteSpace(usuario.Email))
+            {
+                try
+                {
+                    EmailService.EnviarRecuperacionPassword(usuario, claveTemporal);
+                }
+                catch (Exception ex)
+                {
+                    // ACÁ ESTÁ EL CAMBIO: Frenamos la ejecución para mostrar el error real de Gmail
+                    throw new Exception($"La contraseña se cambió exitosamente a {claveTemporal}, pero falló el envío de correo. Detalle: {ex.Message}");
+                }
+            }
+
+            return claveTemporal;
+        }
+
         public bool ExisteUsername(string username)
         {
             AccesoDatos datos = new AccesoDatos();
